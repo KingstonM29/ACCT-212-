@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACCT 212 Study Guide</title>
+  <meta name="description" content="Free, student-made study guide for ACCT 212 (Financial Accounting) at MacEwan University — notes, summaries, worked examples, practice and exam calendar.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232f6f5e'/><text x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'>Dr</text></svg>">
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn" id="menuBtn" aria-label="Open menu">☰</button>
+    <a class="brand" href="#/"><span class="logo">Dr|Cr</span> ACCT 212</a>
+    <button class="icon-btn" id="themeBtnTop" aria-label="Toggle dark mode">◐</button>
+  </header>
+
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#/"><span class="logo">Dr|Cr</span> <span>ACCT 212<small>Study Guide</small></span></a>
+    <form class="search" id="searchForm" role="search">
+      <input id="searchInput" type="search" placeholder="Search notes…" aria-label="Search notes">
+    </form>
+    <nav id="nav">
+      <a href="#/" data-route="home">Dashboard</a>
+      <a href="#/overview" data-route="overview">Overall notes</a>
+      <a href="#/notes" data-route="notes">Chapter notes</a>
+      <div class="nav-chapters" id="navChapters"></div>
+      <a href="#/practice" data-route="practice">Practice</a>
+      <a href="#/calendar" data-route="calendar">Calendar</a>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="link-btn" id="themeBtn">Toggle dark mode</button>
+      <p>Student-made study guide. Not official MacEwan material — always check your course outline &amp; instructor.</p>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main id="app" tabindex="-1"></main>
+
+  <script src="data/calendar.js"></script>
+  <script src="data/chapters.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
