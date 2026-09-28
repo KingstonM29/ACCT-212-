@@ -388,7 +388,7 @@
     return `<div class="page-head"><div class="eyebrow">Overall notes${info ? " · " + esc(info.title) : ""}</div><h1>Everything on one page</h1>
       <p>The big picture: core rules first, then every chapter’s key points in class order. Great for the night before an exam. Use your browser’s print to save a PDF.</p>
       <div class="btn-row"><div class="seg">${[["", "All chapters"]].concat(EXAMS.filter((x) => x.chapters.some(byNum)).map((x) => [x.id, x.title.replace(" Exam", "")])).map(([k, l]) => `<a href="#/overview${k ? "?exam=" + k : ""}" class="${(info ? info.id : "") === k ? "on" : ""}">${esc(l)}</a>`).join("")}</div>
-      <button class="btn" onclick="window.print()">Print / save as PDF</button></div></div>
+      <button class="btn print-btn" onclick="window.print()">Print / save as PDF</button></div></div>
 
       <div class="card"><h2>The accounting equation</h2>
         <div class="formula">Assets = Liabilities + Share Capital + Retained Earnings</div>
