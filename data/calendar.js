@@ -80,11 +80,6 @@ window.COURSE = {
     { date: "2026-10-27", time: "09:30", title: "Midterm Exam 2", type: "exam", exam: "midterm-2", weight: "25%", location: "In class, Room 9-215 (paper)", covers: [5, 6, 7, 8] },
     { date: "2026-12-09", end: "2026-12-18", title: "Final Exam", type: "exam", exam: "final", weight: "30%", location: "Date & time TBA by the Registrar (check myStudentSystem)", covers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14], notes: "Cumulative, with emphasis on Ch 9–11, 13–14." },
 
-    // ---- Lab quizzes ----
-    { date: "2026-10-01", end: "2026-10-07", title: "Lab Quiz 1", type: "quiz", weight: "part of 5%", location: "In your lab (50 min)", covers: [1, 2, 3] },
-    { date: "2026-10-29", end: "2026-11-04", title: "Lab Quiz 2", type: "quiz", weight: "part of 5%", location: "In your lab (50 min)", covers: [4, 5, 6] },
-    { date: "2026-12-07", title: "Lab Quiz 3", type: "quiz", weight: "part of 5%", location: "Outside of lab (50 min timed)", covers: [7, 8, 9, 10] },
-
     // ---- WileyPlus homework ----
     { date: "2026-09-13", title: "Ch 1 homework due", type: "assignment", covers: [1] },
     { date: "2026-09-20", title: "Ch 3 homework due", type: "assignment", covers: [3] },

@@ -688,7 +688,7 @@
   }
 
   /* ---------- calendar ---------- */
-  const FILTERS = [["deadlines", "Deadlines"], ["all", "Everything"], ["exam", "Exams"], ["quiz", "Lab quizzes"], ["assignment", "Homework"], ["class", "Classes"]];
+  const FILTERS = [["deadlines", "Deadlines"], ["all", "Everything"], ["exam", "Exams"], ["assignment", "Homework"], ["class", "Classes"]];
   const filterFn = (f) => f === "all" ? null : f === "deadlines" ? (e) => ["exam", "quiz", "assignment"].includes(e.type) : (e) => e.type === f || (f === "class" && e.type === "break");
 
   function eventRow(e) {
@@ -728,7 +728,7 @@
       <div class="practice-controls"><div class="seg">${FILTERS.map(([k, l]) => `<a href="${q({ f: k })}" class="${f === k ? "on" : ""}">${l}</a>`).join("")}</div></div>
       <div class="card"><div class="cal-head"><a class="btn" href="${q({ y: pm[0], m: pm[1] })}" aria-label="Previous month">←</a><h2 style="margin:0">${MONTHS_LONG[m]} ${y}</h2><a class="btn" href="${q({ y: nm[0], m: nm[1] })}" aria-label="Next month">→</a></div>
         <div class="cal">${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => `<div class="dow">${d}</div>`).join("")}${cells.join("")}</div>
-        <div class="legend"><span class="ev exam">Exam</span><span class="ev quiz">Lab quiz</span><span class="ev assignment">Homework due</span><span class="ev class">Class</span><span class="ev break">No class</span></div></div>
+        <div class="legend"><span class="ev exam">Exam</span><span class="ev assignment">Homework due</span><span class="ev class">Class</span><span class="ev break">No class</span></div></div>
       <div class="section-title"><h2>Upcoming</h2></div>
       ${up.length ? `<div class="event-list">${up.map(eventRow).join("")}</div>` : `<div class="card empty"><h3>Nothing upcoming</h3></div>`}
       ${past.length ? `<details class="note" style="margin-top:20px"><summary>Past (${past.length})</summary><div class="body"><div class="event-list" style="opacity:.7">${past.slice().reverse().map(eventRow).join("")}</div></div></details>` : ""}`;
