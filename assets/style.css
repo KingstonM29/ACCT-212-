@@ -805,3 +805,20 @@ ul.checklist.topics li { display: flex; flex-wrap: wrap; justify-content: space-
 .mistakes b { display: block; margin-bottom: 2px; }
 .mistakes span { color: var(--muted); font-size: .85rem; }
 .mono-line { font-family: var(--mono); font-size: .85rem; }
+
+/* ---------- statement lab ---------- */
+.sl { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.sl .card + .card { margin-top: 0; }
+.sl-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.sl-meta { font-family: var(--mono); font-size: .8rem; }
+.sl-tb select { font: inherit; font-size: .84rem; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); width: 100%; min-width: 210px; }
+.sl-tb select.good { border-color: var(--good); } .sl-tb select.bad { border-color: var(--bad); }
+.sl-tb td { vertical-align: top; border-bottom: 1px solid var(--border); padding-top: 8px; padding-bottom: 8px; }
+.sl-fb { font-size: .76rem; margin-top: 3px; max-width: 360px; }
+.sl-fb:empty { display: none; }
+.sl-sol { margin-top: 16px; }
+.sl-sols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+th.fs-head { text-align: center; line-height: 1.35; }
+th.fs-head span { font-weight: 400; color: var(--muted); }
+.flag { font-size: .68rem; color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 99px; margin-left: 4px; white-space: nowrap; }
+.sl-hints ul { margin: 6px 0 0; }

@@ -160,6 +160,7 @@
         if (isLast || days === 1) {
           plan.push({ d, title: days === 1 ? "Cram day: everything" : "Final review", tasks: [
             mockFor(info.id) ? `Take the <a href="#/mock/${mockFor(info.id).id}">interactive mock midterm</a> with the 80-minute timer, then review your weakest topics` : `Work the <a href="#/exam/${info.id}#practice">practice problems</a> without looking at solutions`,
+            `Do two <a href="#/statements">Statement Lab</a> sets: trial balance → all three statements`,
             `Take the <a href="#/practice?mode=quiz&exam=${info.id}">mixed quiz</a> and aim for 80%+`,
             `Re-read the <a href="#/overview?exam=${info.id}">overall notes</a> and tick off your checklist`] });
         } else {
@@ -250,6 +251,7 @@
       <div class="chapter-grid">${CH.map((c) => chapterCard(c, p)).join("")}</div>
       <div class="section-title"><h2>Study tools</h2></div>
       <div class="quick">
+        <a class="card tool-feature" href="#/statements"><h3>Statement Lab</h3><p>Turn a trial balance into all three statements. Endless graded practice sets.</p></a>
         <a class="card tool-feature" href="#/visual"><h3>Visual lab</h3><p>${DIAGRAM_ORDER.length} live diagrams: watch entries post, statements connect and accounts close.</p></a>
         <a class="card" href="#/overview"><h3>Overall notes</h3><p>Every rule, formula and key point on one page.</p></a>
         <a class="card" href="#/practice?mode=drill"><h3>Debit / credit drill</h3><p>Rapid-fire: which side increases this account?</p></a>
@@ -401,6 +403,7 @@
       ${mock ? `<a class="card mock-cta" href="#/mock/${mock.id}"><div><div class="eyebrow">Interactive · auto-graded · ${mock.minutes} min</div><h2>${esc(mock.title)}</h2>
         <p>Built from your instructor’s topic list: concepts, normal balances, the accounting cycle, journal entries, T-accounts, adjusting entries, statements and closing entries. You get a score for every topic.</p></div>
         <div class="mock-cta-go">${mockLast != null ? `<span>Best so far</span><b>${mockLast}%</b>` : `<b>Start →</b>`}</div></a>` : ""}
+      ${info.chapters.includes(1) ? `<a class="card mock-cta" href="#/statements"><div><div class="eyebrow">Unlimited practice · auto-graded</div><h2>Statement Lab</h2><p>Practise the classic question: prepare the income statement, statement of retained earnings / owner’s equity and classified balance sheet from a trial balance.</p></div><div class="mock-cta-go"><b>Practise →</b></div></a>` : ""}
       ${ev && !past ? studyPlan(ev, info) : ""}
       ${mock ? `<div class="section-title" id="topics"><h2>Your instructor’s topic list</h2><span class="muted">“These will be on the midterm for sure”</span></div>
         <div class="card"><ul class="checklist topics">${mock.topics.map((t) => `<li><label><input type="checkbox" data-topic="${id}:${t.id}" ${(checks()["topics-" + id] || {})[t.id] ? "checked" : ""}><span>${esc(t.label)}</span></label>
@@ -411,6 +414,34 @@
       ${info.tips.length ? `<div class="section-title"><h2>Exam tips</h2></div><div class="card"><ul class="tips">${info.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>` : ""}
       ${info.problems.length ? `<div class="section-title" id="practice"><h2>Worked practice problems</h2><span class="muted">Northside Tutoring (a corporation): one company start to finish with full solutions.</span></div>
         ${info.problems.map((pr, k) => renderExample("exam-" + id, pr, k)).join("")}` : ""}`;
+  }
+
+  /* ---------- statement lab ---------- */
+  function viewStatements() {
+    return `<div class="page-head"><div class="eyebrow">Statement Lab · Ch 1, 2 & 4</div><h1>Trial balance → financial statements</h1>
+      <p>The exam question that trips people up: you’re handed an adjusted trial balance and must prepare the income statement, the statement of retained earnings (or owner’s equity) and a classified balance sheet. Learn the method, then practise on unlimited fresh sets.</p></div>
+      <div class="card"><h2>The method, every time</h2>
+        <ol class="flow">
+          <li><b>Write the 3-line heading</b><span>Company name · Statement name · Date. Income statement & retained earnings: “For the Year Ended Dec 31” (a period). Balance sheet: “Dec 31” (a point in time).</span></li>
+          <li><b>Sort every trial balance account</b><span>Revenues & expenses → income statement. Retained earnings (or capital) & dividends (or drawings) → statement 2. Everything else → balance sheet.</span></li>
+          <li><b>Income statement</b><span>Revenues first, then expenses → (corporation: income before income tax − income tax expense) → net income.</span></li>
+          <li><b>Statement of retained earnings / owner’s equity</b><span>Beginning balance (from the TB) + net income − dividends (drawings) = ending balance.</span></li>
+          <li><b>Classified balance sheet</b><span>Current assets (in liquidity order) → PP&E net of accumulated depreciation → current liabilities → non-current liabilities → equity using the ENDING balance from step 4. Check that assets = liabilities + equity.</span></li>
+        </ol>
+        <div data-diagram="flow"></div></div>
+      <div class="card"><h2>Traps that cost marks</h2>
+        <div class="mistakes">
+          <div><b>Retained earnings on the TB is the BEGINNING balance</b><span>This year’s net income and dividends aren’t in it yet. Never copy it straight to the balance sheet.</span></div>
+          <div><b>Dividends / drawings on the income statement</b><span>They go on statement 2 only. They are not expenses.</span></div>
+          <div><b>Accumulated depreciation as a liability</b><span>It’s a contra asset: subtract it from its asset in PP&E.</span></div>
+          <div><b>Unearned revenue as revenue</b><span>It’s a current liability until the work is done.</span></div>
+          <div><b>Income tax in the wrong place</b><span>Income tax expense goes on the income statement (last). Income tax payable is a current liability.</span></div>
+          <div><b>A long-term note as current</b><span>Due in more than a year → non-current liability.</span></div>
+          <div><b>Balance sheet doesn’t balance?</b><span>Check the ending retained earnings/capital first, then the accumulated depreciation, then a skipped account.</span></div>
+          <div><b>Wrong date line</b><span>Balance sheet = one date. The other two = “For the year ended…”.</span></div>
+        </div></div>
+      <div class="section-title"><h2>Practise</h2><span class="muted">Every set balances and is graded. Hints point to the usual mistakes.</span></div>
+      <div id="stmtMount"></div>`;
   }
 
   /* ---------- mock exam ---------- */
@@ -775,6 +806,7 @@
       (c.examples || []).forEach((e) => idx.push({ c, where: "Example", title: e.title, text: strip(e.prompt), href: `#/chapter/${c.id}/examples` }));
       (c.flashcards || []).forEach((f) => idx.push({ c, where: "Flashcard", title: f.q, text: f.a, href: `#/practice?mode=cards&ch=${c.id}` }));
     });
+    idx.push({ c: { number: "Statement Lab" }, where: "Practice", title: "Prepare the income statement, statement of retained earnings and balance sheet", text: "trial balance financial statements classified balance sheet retained earnings owner’s equity heading method traps", href: "#/statements" });
     DIAGRAM_ORDER.forEach((id) => { const d = DIAGRAMS[id], c = byNum(d.ch); if (c) idx.push({ c, where: "Live diagram", title: d.title, text: d.blurb, href: `#/visual#dg-${id}` }); });
     EXAMS.forEach((x) => x.problems.forEach((p) => idx.push({ c: { number: x.title.replace(" Exam", "") }, where: "Mock exam", title: p.title, text: strip(p.prompt), href: `#/exam/${x.id}#practice` })));
     return idx;
@@ -811,6 +843,7 @@
       case "overview": html = viewOverview(query); break;
       case "visual": html = viewVisual(query); break;
       case "mock": html = viewMock(parts[1]); break;
+      case "statements": html = viewStatements(); break;
       case "notes": html = viewNotesIndex(); break;
       case "chapter": html = viewChapter(parts[1], parts[2]); break;
       case "exam": html = viewExam(parts[1]); break;
@@ -827,6 +860,8 @@
 
     // post-render mounts
     mountDiagrams(app);
+    const sm = document.getElementById("stmtMount");
+    if (sm && window.StatementLab) window.StatementLab.render(sm);
     const mm = document.getElementById("mockMount");
     if (mm && window.MockExam) {
       const m = MOCKS.find((x) => x.id === parts[1]);

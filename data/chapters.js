@@ -104,6 +104,7 @@ window.CHAPTERS = [
 <tr><td>Balance Sheet</td><td>Financial position at a <b>point in time</b>.</td><td>Cash, receivables, supplies, equipment, payables, notes payable, share capital, retained earnings</td></tr>
 <tr><td>Statement of Cash Flows</td><td>Activities that increased and decreased cash during the period.</td><td>Cash from customers, cash paid to suppliers, equipment purchased, bank loans, shares issued</td></tr>
 </tbody></table></div>
+<p><a class="btn" href="#/statements">Practise preparing all three statements in the Statement Lab →</a></p>
 <div class="callout">Under <b>IFRS</b> a <em>statement of changes in equity</em> is required (shows changes in <b>all</b> equity components — share capital and retained earnings). Under <b>ASPE</b> a <em>statement of retained earnings</em> is presented (only retained earnings).</div>
 <div data-diagram="flow"></div>`
       },
@@ -290,7 +291,14 @@ window.CHAPTERS = [
 <li><b>Analyze</b> business transactions — determine the effect on accounts.</li>
 <li><b>Journalize</b> the transactions — the journal is the <em>book of original entry</em>.</li>
 <li><b>Post</b> to the ledger accounts.</li>
-</ol>`
+</ol>
+<h4>Why not enter transactions straight into the ledger?</h4>
+<ul>
+<li>The journal keeps the <b>complete debit and credit effect</b> of each transaction together in one place.</li>
+<li>It preserves <b>chronological order</b>, so you can see what happened and when.</li>
+<li>It makes errors easier to find <b>before</b> amounts are split across separate ledger accounts.</li>
+</ul>
+<p class="muted">If a transaction is never journalized, there is nothing to post, so it’s missing from the ledger, the trial balance <b>and</b> the financial statements.</p>`
       },
       {
         title: "Double-entry accounting",
@@ -343,7 +351,11 @@ window.CHAPTERS = [
 <li>Proves that total debits = total credits after posting.</li>
 <li>Helps find errors in journalizing and posting, and is the starting point for preparing the financial statements.</li>
 </ul>
-<div class="callout warn"><b>A trial balance can balance and still be wrong.</b> It won’t catch: a transaction that was never journalized, an entry posted to the wrong account (but the correct side), an entry recorded twice, or offsetting errors of the same amount.</div>`
+<div class="two-col">
+<div class="card-lite down"><h4>Errors it CAN catch (totals won’t match)</h4><ul><li>Posting only one side of an entry</li><li>Debit and credit amounts that differ</li><li>Posting to the wrong side</li><li>Adding or transferring a balance incorrectly</li></ul></div>
+<div class="card-lite"><h4>Errors it CAN’T catch (still balances)</h4><ul><li>A transaction never journalized</li><li>Posting to the wrong account on the correct side</li><li>An entry recorded twice</li><li>Offsetting errors of the same amount</li></ul></div>
+</div>
+<p class="muted">A trial balance is prepared at one point in time. To know an account’s <b>current</b> balance in the middle of a period, look at the ledger account, not an old trial balance.</p>`
       }
     ],
     examples: [
@@ -370,6 +382,34 @@ window.CHAPTERS = [
             ["Rent Expense", 1200, null], ["Salaries Expense", 500, null]
           ]}}
         ]
+      },
+      {
+        title: "Homework journal entry set (March)",
+        prompt: "Cover the solution and journalize each March transaction: (Mar 2) issued common shares for $11,000 cash; (Mar 4) bought a $9,600 vehicle, paying $1,000 and owing the rest; (Mar 10) provided $2,400 of services on account; (Mar 13) paid $350 for advertising; (Mar 25) collected $1,000 of the receivable; (Mar 27) paid the vehicle payable; (Mar 30) received $700 before performing services; (Mar 31) declared and paid a $300 cash dividend.",
+        steps: [
+          { label: "Journal entries", entries: [
+            { date: "Mar 2", lines: [["Cash", 11000, null], ["Common Shares", null, 11000]] },
+            { date: "Mar 4", lines: [["Vehicles", 9600, null], ["Cash", null, 1000], ["Accounts Payable", null, 8600]] },
+            { date: "Mar 10", lines: [["Accounts Receivable", 2400, null], ["Service Revenue", null, 2400]] },
+            { date: "Mar 13", lines: [["Advertising Expense", 350, null], ["Cash", null, 350]] },
+            { date: "Mar 25", memo: "No revenue here: it was recorded on Mar 10", lines: [["Cash", 1000, null], ["Accounts Receivable", null, 1000]] },
+            { date: "Mar 27", lines: [["Accounts Payable", 8600, null], ["Cash", null, 8600]] },
+            { date: "Mar 30", memo: "Not earned yet, so it’s a liability", lines: [["Cash", 700, null], ["Deferred Revenue", null, 700]] },
+            { date: "Mar 31", memo: "Dividends reduce retained earnings; not an expense", lines: [["Dividends Declared", 300, null], ["Cash", null, 300]] }
+          ]},
+          { label: "Normal side of the homework’s ledger balances", html: `
+<div class="table-wrap"><table><thead><tr><th>Account</th><th>Ending balance</th><th>Normal side</th></tr></thead><tbody>
+<tr><td>Cash</td><td>$3,450</td><td class="dr">Debit</td></tr>
+<tr><td>Accounts Receivable</td><td>$280</td><td class="dr">Debit</td></tr>
+<tr><td>Supplies</td><td>$700</td><td class="dr">Debit</td></tr>
+<tr><td>Accounts Payable</td><td>$0</td><td class="cr">Credit (when not zero)</td></tr>
+<tr><td>Deferred Revenue</td><td>$650</td><td class="cr">Credit</td></tr>
+<tr><td>Common Shares</td><td>$3,400</td><td class="cr">Credit</td></tr>
+<tr><td>Service Revenue</td><td>$930</td><td class="cr">Credit</td></tr>
+<tr><td>Income Tax Expense</td><td>$550</td><td class="dr">Debit</td></tr>
+</tbody></table></div>
+<p class="muted">That homework’s completed trial balance totalled $10,290 debits = $10,290 credits. Equal totals prove debits = credits were posted. They don’t prove the right accounts were used or that nothing was left out.</p>` }
+        ]
       }
     ],
     flashcards: [
@@ -380,6 +420,8 @@ window.CHAPTERS = [
       { q: "What is posting?", a: "Transferring journal entries to the ledger accounts." },
       { q: "Chart of accounts: what does an account number starting with 4 mean?", a: "Revenue (1 Assets, 2 Liabilities, 3 Equity, 4 Revenues, 5 Expenses)" },
       { q: "Name two errors a trial balance will NOT catch.", a: "Omitted transaction; posted to the wrong account on the correct side; duplicated entry; offsetting errors." },
+      { q: "Name two errors a trial balance WILL catch.", a: "Posting only one side of an entry; unequal debit and credit amounts; posting to the wrong side; an addition error." },
+      { q: "Why journalize first instead of posting straight to the ledger?", a: "It keeps each transaction’s full debit/credit effect together, keeps chronological order, and makes errors easier to find." },
       { q: "Steps 1–4 of the accounting cycle?", a: "Analyze transactions, Journalize, Post, Prepare unadjusted trial balance" }
     ],
     quiz: [
@@ -392,7 +434,13 @@ window.CHAPTERS = [
       { q: "Purchased equipment by signing a note payable. The entry is:", options: ["Dr Equipment / Cr Cash", "Dr Notes Payable / Cr Equipment", "Dr Equipment / Cr Notes Payable", "Dr Equipment / Cr Accounts Receivable"], answer: 2, why: "Asset ↑ (debit), liability ↑ (credit)." },
       { q: "Received cash in advance for services to be done next month:", options: ["Dr Cash / Cr Service Revenue", "Dr Cash / Cr Unearned Revenue", "Dr Unearned Revenue / Cr Cash", "Dr Accounts Receivable / Cr Revenue"], answer: 1, why: "Not earned yet, so it’s a liability until the work is done." },
       { q: "A $500 payment on account was posted as a debit to Cash and a credit to A/P. Will the trial balance balance?", options: ["Yes, but both accounts are wrong", "No, debits will exceed credits", "No, credits will exceed debits", "Yes, and it’s correct"], answer: 0, why: "Equal debit and credit were posted, just reversed. Trial balances don’t catch this." },
-      { q: "The journal is organized…", options: ["By account", "Alphabetically", "Chronologically", "By account number"], answer: 2, why: "The journal is the book of original entry, in date order. The ledger is organized by account." }
+      { q: "The journal is organized…", options: ["By account", "Alphabetically", "Chronologically", "By account number"], answer: 2, why: "The journal is the book of original entry, in date order. The ledger is organized by account." },
+      { q: "Equipment costing $20,000 is bought with $5,000 cash and a $15,000 note payable. The entry is:", options: ["Dr Equipment 20,000 / Cr Cash 20,000", "Dr Equipment 20,000 / Cr Cash 5,000, Cr Notes Payable 15,000", "Dr Equipment 5,000 / Cr Cash 5,000", "Dr Equipment 15,000, Dr Cash 5,000 / Cr Notes Payable 20,000"], answer: 1, why: "Record the full cost; the financing is part cash, part new liability. Debits 20,000 = credits 20,000." },
+      { q: "Balances: Equipment $5,000, Notes Payable $5,000, Cash $28,000, Prepaid Rent $6,000, Service Revenue $24,000, Salaries Payable $10,000. Total CREDIT balances?", options: ["$39,000", "$78,000", "$34,000", "$29,000"], answer: 0, why: "Credits: Notes Payable 5,000 + Service Revenue 24,000 + Salaries Payable 10,000." },
+      { q: "Cash receipts $2,000, $7,000, $5,500; payments $1,800, $7,200, $3,000; opening balance 0. Ending Cash?", options: ["$2,500 credit", "$2,500 debit", "$14,500 debit", "$12,000 credit"], answer: 1, why: "14,500 in − 12,000 out = 2,500. Receipts exceed payments, so it’s a debit balance." },
+      { q: "$6,000 received in November for December services was credited to Service Revenue. Result?", options: ["Everything is correct", "Revenue overstated $6,000; Deferred Revenue understated $6,000", "Cash overstated $6,000", "Revenue understated $6,000"], answer: 1, why: "Cash is right, but it isn’t earned yet: it should be Cr Deferred Revenue." },
+      { q: "Which error makes the trial balance totals unequal?", options: ["Omitting a transaction", "Debiting the wrong expense account", "Posting only the credit side of an entry", "Recording an entry twice"], answer: 2, why: "A one-sided posting breaks debits = credits. The others keep both sides equal." },
+      { q: "A cash receipt is never entered in the journal, but every later step is done correctly. The receipt will be…", options: ["In the ledger but not the statements", "Missing from both the ledger and the statements", "Caught by the trial balance", "Recorded automatically at closing"], answer: 1, why: "Nothing is journalized, so nothing is posted, so it never reaches the statements." }
     ]
   },
 
@@ -460,8 +508,8 @@ window.CHAPTERS = [
         title: "Non-current assets",
         html: `
 <div class="table-wrap"><table><tbody>
-<tr><td><b>Long-term investments</b></td><td>Investments in debt or equity expected to be held for many years. Not readily marketable or expected to be converted into cash within one year.</td></tr>
-<tr><td><b>Property, plant & equipment</b></td><td>Long-lived, <b>tangible</b> assets used in the business and <b>not intended for sale</b>.</td></tr>
+<tr><td><b>Long-term investments</b></td><td>Investments in debt or equity expected to be held for many years. Not readily marketable or expected to be converted into cash within one year. Land held only as an investment (to resell later) also goes here.</td></tr>
+<tr><td><b>Property, plant & equipment</b></td><td>Long-lived, <b>tangible</b> assets used in the business and <b>not intended for sale</b>. Homework example: land bought to build and operate a manufacturing centre for many years is PP&E, a non-current operating asset.</td></tr>
 <tr><td><b>Intangible assets</b></td><td>Long-lived assets with <b>no physical substance</b> that give a company rights and privileges. Goodwill is a type of intangible asset.</td></tr>
 </tbody></table></div>`
       },
@@ -480,7 +528,7 @@ window.CHAPTERS = [
         html: `
 <div class="two-col">
 <div class="card-lite"><h4>Current liabilities</h4><p>Paid or settled within the longer of one year or one operating cycle.</p><ul><li>Bank indebtedness</li><li>Accounts payable</li><li>Deferred revenue</li><li>Bank loan / notes payable</li><li>Current portion of long-term debt</li></ul></div>
-<div class="card-lite"><h4>Non-current liabilities</h4><p>Expected to be paid or settled after one year. Usually come with extensive notes.</p><ul><li>Bank loan / notes payable</li><li>Lease liabilities</li><li>Pension & benefit obligations</li><li>Deferred liabilities</li></ul></div>
+<div class="card-lite"><h4>Non-current liabilities</h4><p>Expected to be paid or settled after one year. Usually come with extensive notes. A company may list each long-term liability separately <b>or</b> show one total with the details in the notes. Both are acceptable, because the notes are part of the financial statements.</p><ul><li>Bank loan / notes payable</li><li>Lease liabilities</li><li>Pension & benefit obligations</li><li>Deferred liabilities</li></ul></div>
 </div>`
       },
       {
@@ -512,9 +560,14 @@ window.CHAPTERS = [
 <tr><td><b>Going concern</b></td><td>Assume the business will keep operating for the foreseeable future (this is why assets are shown at cost, not liquidation value).</td></tr>
 <tr><td><b>Currency</b> (monetary unit)</td><td>Only items that can be expressed in money are recorded.</td></tr>
 <tr><td><b>Revenue recognition</b></td><td>Record revenue when it is earned (performance obligation satisfied), not necessarily when cash is received.</td></tr>
-<tr><td><b>Measurement</b></td><td>How amounts are valued — mainly historical cost; some items at fair value.</td></tr>
+<tr><td><b>Measurement</b></td><td>How amounts are valued. <b>Historical cost</b> reports the original transaction price. <b>Fair value</b> (current market price) is used when the rules permit it and the asset is actively traded with reliable prices available, because it’s more relevant.</td></tr>
 <tr><td><b>Cost constraint</b></td><td>The benefit of reporting information should be greater than the cost of providing it.</td></tr>
-</tbody></table></div>`
+</tbody></table></div>
+<h4>Qualitative characteristics</h4>
+<div class="two-col">
+<div class="card-lite"><h4>Relevance</h4><p>Information that can make a difference in a decision (it helps predict or confirm).</p></div>
+<div class="card-lite"><h4>Faithful representation</h4><p>A truthful, transparent picture of what exists or what happened. It is supported by being <b>complete</b>, <b>neutral</b> and <b>free from material error</b>.</p></div>
+</div>`
       },
       {
         title: "Ratio analysis",
@@ -543,7 +596,8 @@ window.CHAPTERS = [
           { label: "Answers", html: `
 <div class="table-wrap"><table><thead><tr><th>Item</th><th>Classification</th></tr></thead><tbody>
 <tr><td>Prepaid insurance (12 months)</td><td>Current asset</td></tr>
-<tr><td>Land held for a future building site</td><td>Long-term investment (not used in operations yet)</td></tr>
+<tr><td>Land bought to build and operate a manufacturing centre</td><td>Property, plant & equipment (used in operations long term)</td></tr>
+<tr><td>Land held only as an investment, to resell later</td><td>Long-term investment</td></tr>
 <tr><td>Delivery truck</td><td>Property, plant & equipment</td></tr>
 <tr><td>Accumulated depreciation — truck</td><td>Contra asset (deducted from PP&E)</td></tr>
 <tr><td>Patent</td><td>Intangible asset</td></tr>
@@ -552,6 +606,19 @@ window.CHAPTERS = [
 <tr><td>Portion of long-term debt due next year</td><td>Current liability</td></tr>
 <tr><td>Retained earnings</td><td>Shareholders’ equity</td></tr>
 </tbody></table></div>` }
+        ]
+      },
+      {
+        title: "Current ratio: before and after a transaction",
+        prompt: "(a) Current assets $180,000; current liabilities $120,000. Find working capital and the current ratio. (b) Another company has current assets of $2,500,000 and current liabilities of $1,000,000. What is the current ratio after it issues $50,000 of shares for cash? (c) What if it instead borrowed $50,000 on a short-term note?",
+        steps: [
+          { label: "Solution", html: `
+<ul class="calc">
+<li>(a) Working capital = 180,000 − 120,000 = <b>$60,000</b>. Current ratio = 180,000 ÷ 120,000 = <b>1.50 : 1</b></li>
+<li>(b) Before: 2,500,000 ÷ 1,000,000 = 2.50. The share issue adds cash (current assets ↑) and no liability: 2,550,000 ÷ 1,000,000 = <b>2.55 : 1</b>, so liquidity improves</li>
+<li>(c) A short-term loan adds the same $50,000 to <b>both</b> sides: 2,550,000 ÷ 1,050,000 = <b>2.43 : 1</b>, so the ratio falls even though cash went up</li>
+</ul>
+<p class="muted">Trick for any “what happens to the ratio” question: write the new current assets and current liabilities, then divide. Don’t guess from the direction of cash alone.</p>` }
         ]
       },
       {
@@ -577,7 +644,10 @@ window.CHAPTERS = [
       { q: "Going concern assumption?", a: "The business will continue operating for the foreseeable future." },
       { q: "Cost constraint?", a: "The benefit of reporting information must exceed the cost of providing it." },
       { q: "Liquidity vs solvency ratios?", a: "Liquidity = short-term ability to pay obligations. Solvency = ability to survive long term." },
-      { q: "Current ratio formula?", a: "Current assets ÷ Current liabilities" }
+      { q: "Current ratio formula?", a: "Current assets ÷ Current liabilities" },
+      { q: "Faithful representation means…", a: "A truthful, transparent picture of what happened: complete, neutral and free from material error." },
+      { q: "Share issue for cash vs a new short-term loan: effect on the current ratio?", a: "Share issue: current assets ↑ only, so the ratio ↑. Short-term loan: both ↑ by the same amount, so the ratio moves toward 1 (falls when it was above 1)." },
+      { q: "Land bought to build a manufacturing centre is classified as…", a: "Property, plant & equipment (a non-current operating asset)" }
     ],
     quiz: [
       { q: "Accumulated depreciation is a…", options: ["Liability", "Contra asset", "Expense", "Revenue"], answer: 1, why: "It reduces the related asset and has a credit balance." },
@@ -589,7 +659,11 @@ window.CHAPTERS = [
       { q: "Current assets $45,000, current liabilities $30,000. Current ratio?", options: ["0.67 : 1", "1.5 : 1", "$15,000", "75 : 1"], answer: 1, why: "45,000 ÷ 30,000 = 1.5. ($15,000 is working capital.)" },
       { q: "Total liabilities $120,000, total assets $300,000. Debt to total assets?", options: ["40%", "250%", "60%", "30%"], answer: 0, why: "120,000 ÷ 300,000 = 40%." },
       { q: "Assets are reported at cost rather than liquidation value because of the…", options: ["Currency assumption", "Going concern assumption", "Cost constraint", "Business entity concept"], answer: 1, why: "The business is assumed to keep operating, so selling everything isn’t expected." },
-      { q: "A company’s operating cycle is 18 months. Receivables collectible in 15 months are…", options: ["Non-current", "Current", "Long-term investments", "Not reported"], answer: 1, why: "Current = one year OR one operating cycle, whichever is longer (18 months)." }
+      { q: "A company’s operating cycle is 18 months. Receivables collectible in 15 months are…", options: ["Non-current", "Current", "Long-term investments", "Not reported"], answer: 1, why: "Current = one year OR one operating cycle, whichever is longer (18 months)." },
+      { q: "Current assets $2,500,000, current liabilities $1,000,000. The company issues $50,000 of shares for cash. New current ratio?", options: ["2.50 : 1", "2.55 : 1", "2.43 : 1", "2.45 : 1"], answer: 1, why: "Cash ↑ 50,000, liabilities unchanged: 2,550,000 ÷ 1,000,000." },
+      { q: "A company buys land to build and operate a manufacturing centre for many years. Classify the land as…", options: ["Current asset", "Intangible asset", "Property, plant & equipment", "Long-term investment"], answer: 2, why: "It’s tangible and used in operations long term." },
+      { q: "An asset is actively traded with reliable market prices. Which measurement is most relevant (if the rules permit it)?", options: ["Historical cost", "Fair value", "Liquidation value", "Replacement cost"], answer: 1, why: "A current market price shows what the asset could be sold for today." },
+      { q: "Information that shows a truthful, transparent picture of what happened has which qualitative characteristic?", options: ["Relevance", "Faithful representation", "Timeliness", "Going concern"], answer: 1, why: "Faithful representation: complete, neutral, free from material error." }
     ]
   },
 
@@ -805,7 +879,8 @@ window.CHAPTERS = [
 <p>Prepare the <b>income statement first</b>: its net income is needed for the statement of changes in equity (retained earnings).</p>
 <div class="formula small">Net income = Revenues − Expenses &nbsp;·&nbsp; Ending RE = Beginning RE + Net income − Dividends</div>
 <ul class="calc"><li>Homework: revenue $134,100 − total expenses $97,300 = net income <b>$36,800</b></li>
-<li>Ending retained earnings = $47,800 + $36,800 − $5,300 = <b>$79,300</b></li></ul>`
+<li>Ending retained earnings = $47,800 + $36,800 − $5,300 = <b>$79,300</b></li></ul>
+<p><a class="btn" href="#/statements">Practise with fresh trial balances in the Statement Lab →</a></p>`
       },
       {
         title: "Closing temporary accounts",
