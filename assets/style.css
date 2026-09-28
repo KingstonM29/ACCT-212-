@@ -822,3 +822,12 @@ th.fs-head { text-align: center; line-height: 1.35; }
 th.fs-head span { font-weight: 400; color: var(--muted); }
 .flag { font-size: .68rem; color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 99px; margin-left: 4px; white-space: nowrap; }
 .sl-hints ul { margin: 6px 0 0; }
+
+/* ---------- instructor practice ---------- */
+.practice-sets { margin-bottom: 18px; }
+.src-tag { color: var(--accent); }
+.given-list { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; margin: 10px 0 4px; }
+.gl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 18px; margin-top: 6px; }
+.gl-grid div { display: flex; justify-content: space-between; gap: 10px; font-size: .88rem; padding: 3px 0; border-bottom: 1px dashed var(--border); }
+.gl-grid b { font-family: var(--mono); font-weight: 500; }
+.practice-controls select { max-width: 100%; min-width: 0; flex: 1 1 220px; }

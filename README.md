@@ -9,6 +9,7 @@ Textbook: Kimmel et al., *Financial Accounting: Tools for Business Decision-Maki
 - **Exam prep**: one page per exam with the format, a chapter "can you do this?" checklist, exam tips and a full **mock Midterm 1** (journalize → trial balance → adjusting entries → statements → closing) with solutions
 - **Interactive Mock Midterm 1**: built from the instructor's *Summary for Midterm #1* topic list. It has 8 parts and 90 marks: concepts, normal balances, the accounting cycle, journal entries, T-accounts, the adjusting entries, the statements (including the statement of owner's equity) and the 4 closing entries. It auto-grades, has an 80-minute timer, saves your answers and breaks your score down by topic.
 - **Statement Lab**: unlimited, auto-graded practice turning an adjusted trial balance into an income statement, a statement of retained earnings (or owner's equity) and a classified balance sheet. Corporation or proprietorship, standard or harder, with hints for the classic mistakes.
+- **Instructor practice**: all 61 true/false and multiple-choice questions from Practice Questions 1–3 (tagged like "PQ3 #22", each with an explanation), plus the journal entry and closing entry practice sheets rebuilt as auto-graded sets, including "no entry required" events and a net-loss closing.
 - **Visual lab**: 11 live, interactive diagrams, also built into the chapter notes:
   - the accounting equation balance and how the statements connect (Ch 1)
   - the accounting cycle wheel and journal → ledger → trial balance posting (Ch 3)
@@ -72,6 +73,7 @@ All content lives in the `data/` folder. You don't need to touch the app code.
 - **`assets/diagrams.js`**: the live diagrams. Drop `<div data-diagram="id"></div>` into any chapter section to embed one.
 - **`data/mock-midterm1.js`**: the interactive mock exam (questions tagged by topic). `assets/mock.js` grades it.
 - **`assets/statements.js`**: the Statement Lab generator. Every practice set is built from a seed and always balances.
+- **`data/practice-sets.js`**: the instructor's journal and closing entry practice sets (graded by `assets/mock.js`). Instructor quiz questions live in each chapter's `quiz` with a `src` tag.
 - **`data/exams.js`**: exam-prep pages: format, tips and mock-exam problems for each exam.
 
 ## Disclaimer

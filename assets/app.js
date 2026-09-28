@@ -5,7 +5,8 @@
   const COURSE = window.COURSE || { events: [], chapters: [] };
   const EXAMS = window.EXAMS || [];
   const MOCKS = window.MOCK_EXAMS || [];
-  const mockFor = (examId) => MOCKS.find((m) => m.exam === examId);
+  const mockFor = (examId) => MOCKS.find((m) => m.exam === examId && !m.practice);
+  const PRACTICE_SETS = () => MOCKS.filter((m) => m.practice);
   const CONTENT = window.CHAPTERS || [];
   const app = document.getElementById("app");
   const DIAGRAMS = window.DIAGRAMS || {};
@@ -161,6 +162,7 @@
           plan.push({ d, title: days === 1 ? "Cram day: everything" : "Final review", tasks: [
             mockFor(info.id) ? `Take the <a href="#/mock/${mockFor(info.id).id}">interactive mock midterm</a> with the 80-minute timer, then review your weakest topics` : `Work the <a href="#/exam/${info.id}#practice">practice problems</a> without looking at solutions`,
             `Do two <a href="#/statements">Statement Lab</a> sets: trial balance → all three statements`,
+            `Redo the instructor’s <a href="#/mock/je-practice">journal entry</a> and <a href="#/mock/closing-practice">closing entry</a> practice sets`,
             `Take the <a href="#/practice?mode=quiz&exam=${info.id}">mixed quiz</a> and aim for 80%+`,
             `Re-read the <a href="#/overview?exam=${info.id}">overall notes</a> and tick off your checklist`] });
         } else {
@@ -404,6 +406,9 @@
         <p>Built from your instructor’s topic list: concepts, normal balances, the accounting cycle, journal entries, T-accounts, adjusting entries, statements and closing entries. You get a score for every topic.</p></div>
         <div class="mock-cta-go">${mockLast != null ? `<span>Best so far</span><b>${mockLast}%</b>` : `<b>Start →</b>`}</div></a>` : ""}
       ${info.chapters.includes(1) ? `<a class="card mock-cta" href="#/statements"><div><div class="eyebrow">Unlimited practice · auto-graded</div><h2>Statement Lab</h2><p>Practise the classic question: prepare the income statement, statement of retained earnings / owner’s equity and classified balance sheet from a trial balance.</p></div><div class="mock-cta-go"><b>Practise →</b></div></a>` : ""}
+      ${info.chapters.includes(3) && PRACTICE_SETS().length ? `<div class="quick practice-sets" style="margin-top:16px">
+        <a class="card tool-feature" href="#/practice?mode=quiz&src=instructor&exam=${id}"><h3>Instructor practice questions</h3><p>Every T/F and multiple-choice question from Practice Questions 1–3.</p></a>
+        ${PRACTICE_SETS().map((m) => `<a class="card tool-feature" href="#/mock/${m.id}"><h3>${esc(m.title)}</h3><p>From your instructor’s practice sheets, auto-graded.</p></a>`).join("")}</div>` : ""}
       ${ev && !past ? studyPlan(ev, info) : ""}
       ${mock ? `<div class="section-title" id="topics"><h2>Your instructor’s topic list</h2><span class="muted">“These will be on the midterm for sure”</span></div>
         <div class="card"><ul class="checklist topics">${mock.topics.map((t) => `<li><label><input type="checkbox" data-topic="${id}:${t.id}" ${(checks()["topics-" + id] || {})[t.id] ? "checked" : ""}><span>${esc(t.label)}</span></label>
@@ -449,9 +454,9 @@
     const m = MOCKS.find((x) => x.id === id);
     if (!m) return viewNotFound();
     const ev = examEvent(m.exam);
-    return `<div class="page-head"><div class="eyebrow">${ev ? esc(ev.title) + " · " + dateRange(ev) : "Mock exam"}</div><h1>${esc(m.title)}</h1>
-      <p>Answer like it’s the real thing, then grade it. Every question is tagged to a topic on your instructor’s list, so your results show exactly what to review.</p>
-      <div class="btn-row"><a class="btn" href="#/exam/${m.exam}">← Exam prep</a></div></div><div id="mockMount"></div>`;
+    return `<div class="page-head"><div class="eyebrow">${m.practice ? "Instructor practice set" : ev ? esc(ev.title) + " · " + dateRange(ev) : "Mock exam"}</div><h1>${esc(m.title)}</h1>
+      <p>${m.practice ? "Your instructor’s practice questions, rebuilt so every entry is auto-graded with part marks and the correct answer." : "Answer like it’s the real thing, then grade it. Every question is tagged to a topic on your instructor’s list, so your results show exactly what to review."}</p>
+      <div class="btn-row">${m.practice ? `<a class="btn" href="#/practice">← Practice</a>` : `<a class="btn" href="#/exam/${m.exam}">← Exam prep</a>`}</div></div><div id="mockMount"></div>`;
   }
 
   /* ---------- visual lab ---------- */
@@ -559,8 +564,17 @@
     const ch = query.get("ch") || "";
     const exam = query.get("exam") || "";
     const val = exam ? "exam:" + exam : ch || "all";
+    const src = query.get("src") || "";
+    const instructorCount = CH.reduce((n, c) => n + (c.quiz || []).filter((q) => q.src).length, 0);
+    const qsBase = `mode=quiz${exam ? "&exam=" + exam : ch ? "&ch=" + ch : ""}`;
     return `<div class="page-head"><div class="eyebrow">Practice</div><h1>Test yourself</h1>
       <p>Drill the debit/credit rules, flip through flashcards or take a quiz. Pick an exam, a chapter, or mix them all.</p></div>
+      <div class="quick practice-sets">
+        <a class="card tool-feature" href="#/practice?mode=quiz&src=instructor"><h3>Instructor practice questions</h3><p>All ${instructorCount} true/false and multiple-choice questions from Practice Questions 1–3, with explanations.</p></a>
+        ${PRACTICE_SETS().map((m) => `<a class="card tool-feature" href="#/mock/${m.id}"><h3>${esc(m.title)}</h3><p>${m.parts.filter((pt) => pt.type === "je").reduce((n, pt) => n + pt.items.length, 0)} auto-graded entries from your instructor’s ${m.id.startsWith("je") ? "journal entry" : "closing entry"} practice sheets.</p></a>`).join("")}
+        <a class="card" href="#/statements"><h3>Statement Lab</h3><p>Trial balance → income statement, retained earnings and balance sheet.</p></a>
+      </div>
+      ${mode === "quiz" ? `<div class="practice-controls"><div class="seg"><a href="#/practice?${qsBase}" class="${src ? "" : "on"}">All questions</a><a href="#/practice?${qsBase}&src=instructor" class="${src ? "on" : ""}">Instructor questions only</a></div></div>` : ""}
       <div class="practice-controls">
         <div class="seg" role="tablist">${[["drill", "Dr/Cr drill"], ["cards", "Flashcards"], ["quiz", "Quiz"]].map(([k, l]) => `<button data-mode="${k}" class="${mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
         ${mode !== "drill" ? `<select id="chSel"><option value="all">All chapters</option>
@@ -574,8 +588,9 @@
     if (sel.startsWith("exam:")) { const x = examInfo(sel.slice(5)); return x ? x.chapters.map(byNum).filter(Boolean) : CH; }
     return [byId(sel)].filter(Boolean);
   }
-  function mountPractice(el, mode, sel) {
+  function mountPractice(el, mode, sel, srcOnly) {
     const pool = poolFor(sel);
+    if (mode === "quiz" && srcOnly) return mountQuiz(el, shuffle(pool.flatMap((c) => (c.quiz || []).filter((q) => q.src).map((q) => Object.assign({ ch: c }, q)))));
     if (mode === "cards") return mountCards(el, shuffle(pool.flatMap((c) => (c.flashcards || []).map((f) => Object.assign({ ch: c }, f)))));
     if (mode === "quiz") return mountQuiz(el, shuffle(pool.flatMap((c) => (c.quiz || []).map((q) => Object.assign({ ch: c }, q)))));
     return mountDrill(el);
@@ -622,7 +637,7 @@
       }
       const q = qs[i];
       el.innerHTML = `<div class="progress-line"><span style="width:${(i / qs.length) * 100}%"></span></div>
-        <div class="card"><div class="eyebrow">Question ${i + 1} of ${qs.length} · ${chLabel(q.ch)} · ${right} correct</div>
+        <div class="card"><div class="eyebrow">Question ${i + 1} of ${qs.length} · ${chLabel(q.ch)}${q.src ? ` · <span class="src-tag">Instructor ${esc(q.src)}</span>` : ""} · ${right} correct</div>
         <div class="quiz-q">${esc(q.q)}</div>
         <div class="options">${q.options.map((o, k) => `<button data-opt="${k}">${esc(o)}</button>`).join("")}</div>
         <div id="why"></div></div>`;
@@ -807,6 +822,8 @@
       (c.flashcards || []).forEach((f) => idx.push({ c, where: "Flashcard", title: f.q, text: f.a, href: `#/practice?mode=cards&ch=${c.id}` }));
     });
     idx.push({ c: { number: "Statement Lab" }, where: "Practice", title: "Prepare the income statement, statement of retained earnings and balance sheet", text: "trial balance financial statements classified balance sheet retained earnings owner’s equity heading method traps", href: "#/statements" });
+    CH.forEach((c) => (c.quiz || []).filter((q) => q.src).forEach((q) => idx.push({ c, where: "Instructor " + q.src, title: q.q, text: q.options[q.answer] + ". " + (q.why || ""), href: `#/practice?mode=quiz&src=instructor&ch=${c.id}` })));
+    PRACTICE_SETS().forEach((m) => m.parts.forEach((pt) => (pt.items || []).forEach((it) => { if (it.text) idx.push({ c: { number: "Practice set" }, where: m.title, title: `${pt.title}: ${it.date}`, text: it.text, href: `#/mock/${m.id}#part-${pt.id}` }); })));
     DIAGRAM_ORDER.forEach((id) => { const d = DIAGRAMS[id], c = byNum(d.ch); if (c) idx.push({ c, where: "Live diagram", title: d.title, text: d.blurb, href: `#/visual#dg-${id}` }); });
     EXAMS.forEach((x) => x.problems.forEach((p) => idx.push({ c: { number: x.title.replace(" Exam", "") }, where: "Mock exam", title: p.title, text: strip(p.prompt), href: `#/exam/${x.id}#practice` })));
     return idx;
@@ -878,7 +895,7 @@
         pm.outerHTML = `<div class="practice-controls"><div class="seg">${[["cards", "Flashcards"], ["quiz", "Quiz"]].map(([k, l], i) => `<button data-cmode="${k}" class="${i === 0 ? "on" : ""}">${l}</button>`).join("")}</div></div><div id="practiceMount"></div>`;
         mountPractice(document.getElementById("practiceMount"), "cards", parts[1]);
       } else {
-        mountPractice(pm, query.get("mode") || "drill", query.get("exam") ? "exam:" + query.get("exam") : query.get("ch") || "all");
+        mountPractice(pm, query.get("mode") || "drill", query.get("exam") ? "exam:" + query.get("exam") : query.get("ch") || "all", query.get("src") === "instructor");
       }
     }
     if (parts[0] === "grades") updateGrades();
@@ -912,7 +929,8 @@
     if (e.target.id === "chSel") {
       const mode = (location.hash.match(/mode=(\w+)/) || [])[1] || "cards";
       const v = e.target.value;
-      location.hash = `#/practice?mode=${mode}${v.startsWith("exam:") ? "&exam=" + v.slice(5) : v !== "all" ? "&ch=" + v : ""}`;
+      const srcQ = /src=instructor/.test(location.hash) ? "&src=instructor" : "";
+      location.hash = `#/practice?mode=${mode}${v.startsWith("exam:") ? "&exam=" + v.slice(5) : v !== "all" ? "&ch=" + v : ""}${srcQ}`;
     }
     if (e.target.dataset.topic) {
       const [ex, tid] = e.target.dataset.topic.split(":");

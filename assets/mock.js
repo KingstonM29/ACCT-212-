@@ -6,13 +6,13 @@
   "use strict";
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const n0 = (n) => Math.round(Math.abs(n)).toLocaleString("en-CA");
-  const num = (s) => { const v = parseFloat(String(s == null ? "" : s).replace(/[$,\s]/g, "")); return isNaN(v) ? null : v; };
+  const num = (s) => { let t = String(s == null ? "" : s).replace(/[$,\s]/g, ""); if (/^\(.*\)$/.test(t)) t = "-" + t.slice(1, -1); const v = parseFloat(t); return isNaN(v) ? null : v; };
   const half = (x) => Math.round(x * 2) / 2;
   const fmtM = (x) => (Math.round(x * 10) / 10).toString();
   let lineSeq = 0;
 
   function jeTable(items) {
-    return `<div class="table-wrap"><table class="je"><thead><tr><th>Date</th><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody>${items.map((it) => it.lines.map((l, i) =>
+    return `<div class="table-wrap"><table class="je"><thead><tr><th>Date</th><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody>${items.map((it) => (!it.lines.length ? `<tr class="first"><td class="date">${esc(it.date)}</td><td colspan="3"><i>${esc(it.none || "No entry required")}</i></td></tr>` : "") + it.lines.map((l, i) =>
       `<tr class="${i === 0 ? "first" : ""}"><td class="date">${i === 0 ? esc(it.date) : ""}</td><td class="${l[1] == null ? "credit-acct" : ""}">${esc(l[0])}</td><td class="num d">${l[1] != null ? n0(l[1]) : ""}</td><td class="num c">${l[2] != null ? n0(l[2]) : ""}</td></tr>`).join("") + (it.kind ? `<tr class="memo"><td></td><td colspan="3">${esc(it.kind)}</td></tr>` : "")).join("")}</tbody></table></div>`;
   }
   function tbTable(tb) {
@@ -35,12 +35,18 @@
     state.a = state.a || {};
     const total = mock.parts.reduce((s, p) => s + partMarks(p), 0);
     const topicName = (id) => (mock.topics.find((t) => t.id === id) || {}).label || id;
-    const ACC = mock.accounts.map((a) => `<option value="${esc(a)}">${esc(a)}</option>`).join("");
+    const accOpts = (list) => list.map((a) => `<option value="${esc(a)}">${esc(a)}</option>`).join("");
+    const ACC = accOpts(mock.accounts || []);
+    const accFor = (pid) => { const p = mock.parts.find((x) => x.id === pid); return p && p.accounts ? accOpts(p.accounts) : ACC; };
 
     /* ---------- part renderers ---------- */
+    function givenHtml(gv) {
+      if (gv.list) return `<div class="given-list"><div class="eyebrow">${esc(gv.title)}</div><div class="gl-grid">${gv.list.map((r) => `<div><span>${esc(r[0])}</span><b>$${n0(r[1])}</b></div>`).join("")}</div></div>`;
+      return `<details class="note given"><summary>Given: ${esc(gv.title)}</summary><div class="body">${tbTable(gv)}</div></details>`;
+    }
     function jeRow(pid, i, r, line) {
       const id = `m-${pid}-${i}-${r}`;
-      return `<div class="jr" data-r="${r}"><select id="${id}-a" data-f="a" aria-label="Account"><option value="">Account…</option>${ACC}</select>
+      return `<div class="jr" data-r="${r}"><select id="${id}-a" data-f="a" aria-label="Account"><option value="">Account…</option>${accFor(pid)}</select>
         <input id="${id}-d" data-f="d" inputmode="decimal" placeholder="Debit" aria-label="Debit" value="${esc(line && line[1] || "")}">
         <input id="${id}-c" data-f="c" inputmode="decimal" placeholder="Credit" aria-label="Credit" value="${esc(line && line[2] || "")}">
         <button class="jr-x" data-act="rmline" aria-label="Remove line" title="Remove line">×</button></div>`;
@@ -59,14 +65,14 @@
         body = `<ol class="ord">${order.map((ix, pos) => `<li data-ix="${ix}"><span class="ord-n">${pos + 1}</span><span class="ord-t">${esc(p.items[ix])}</span>
           <button class="btn ord-b" data-act="up" aria-label="Move up" ${pos === 0 ? "disabled" : ""}>↑</button><button class="btn ord-b" data-act="down" aria-label="Move down" ${pos === order.length - 1 ? "disabled" : ""}>↓</button></li>`).join("")}</ol>`;
       } else if (p.type === "je") {
-        body = p.items.map((it, i) => {
+        body = (p.given ? givenHtml(p.given) : "") + p.items.map((it, i) => {
           const saved = (a[i] && a[i].length ? a[i] : [["", "", ""], ["", "", ""]]);
           return `<div class="jq" data-i="${i}"><div class="jq-h"><span class="jq-date">${esc(it.date)}</span><span>${esc(it.text)}</span><span class="jq-m">${p.marksEach} marks</span></div>
             <div class="jq-rows">${saved.map((l, r) => jeRow(p.id, i, r, l)).join("")}</div>
             <div class="jq-foot"><button class="btn small" data-act="addline">+ line</button><span class="jq-tot"></span></div><div class="jq-fb"></div></div>`;
         }).join("");
       } else if (p.type === "numeric") {
-        body = (p.given ? `<details class="note given"><summary>Given: ${esc(p.given.title)}</summary><div class="body">${tbTable(p.given)}</div></details>` : "") +
+        body = (p.given ? givenHtml(p.given) : "") +
           `<div class="nq-list">${p.items.map((it, i) => `<div class="nq" data-i="${i}"><label for="m-${p.id}-${i}">${esc(it.label)}${it.hint ? `<small>${esc(it.hint)}</small>` : ""}</label>
             <div class="nq-in"><span>$</span><input id="m-${p.id}-${i}" inputmode="decimal" value="${esc(a[i] || "")}" placeholder="0"></div><span class="nq-fb"></span></div>`).join("")}</div>`;
       }
@@ -94,6 +100,7 @@
     function addT(t, ids, e, pos) { (Array.isArray(ids) ? ids : [ids]).forEach((id) => { t[id] = t[id] || [0, 0]; t[id][0] += e; t[id][1] += pos; }); }
     function gradeJE(user, sol) {
       const u = user.map((l) => [l[0], num(l[1]) || 0, num(l[2]) || 0]).filter((l) => l[0] || l[1] || l[2]);
+      if (!sol.length) return { frac: u.length ? 0 : 1, balanced: true, dr: 0, cr: 0, empty: false, noEntry: true };
       const left = sol.map((l) => [l[0], l[1] || 0, l[2] || 0]);
       let matched = 0;
       u.forEach((l) => { const k = left.findIndex((s) => s[0] === l[0] && Math.abs(s[1] - l[1]) < 0.5 && Math.abs(s[2] - l[2]) < 0.5); if (k >= 0) { matched++; left.splice(k, 1); } });
@@ -131,7 +138,8 @@
         if (show) {
           q.classList.toggle("right", e === p.marksEach); q.classList.toggle("wrong", e < p.marksEach);
           q.querySelector(".jq-fb").innerHTML = e === p.marksEach
-            ? `<span class="ok">✓ ${e}/${p.marksEach}</span>${it.kind ? ` <span class="muted">${esc(it.kind)}</span>` : ""}`
+            ? `<span class="ok">✓ ${e}/${p.marksEach}</span>${g.noEntry ? ` <span class="muted">${esc(it.none || "No entry required.")}</span>` : it.kind ? ` <span class="muted">${esc(it.kind)}</span>` : ""}`
+            : g.noEntry ? `<span class="no">0/${p.marksEach}.</span> ${esc(it.none || "No entry was required.")}`
             : `<span class="no">${g.empty ? "Not answered." : `${fmtM(e)}/${p.marksEach}.`}</span>${!g.empty && !g.balanced ? ` <span class="muted">Your debits (${n0(g.dr)}) ≠ credits (${n0(g.cr)}).</span>` : ""} Correct entry:${jeTable([Object.assign({}, it, { date: "" })])}`;
         }
       });
@@ -177,6 +185,7 @@
     /* ---------- timer ---------- */
     let tick;
     function drawTimer() {
+      if (!mock.minutes) return;
       const box = el.querySelector(".mock-timer"), btn = el.querySelector('[data-act="timer"]');
       if (!state.endAt) { box.textContent = `${mock.minutes}:00`; box.className = "mock-timer"; btn.textContent = `Start ${mock.minutes}-min timer`; return; }
       const left = Math.max(0, state.endAt - Date.now());
@@ -192,12 +201,12 @@
     const coverage = {};
     mock.parts.forEach((p) => { const r = { topics: {} }; (p.items || []).forEach((it) => addT(r.topics, it.topic || it.topics || p.topic, 0, p.marksEach || 0)); if (p.type === "order") addT(r.topics, p.topic, 0, p.marks); Object.keys(r.topics).forEach((k) => addT(coverage, k, 0, r.topics[k][1])); });
     el.innerHTML = `<div class="mock">
-      <div class="mock-bar"><span class="mock-timer"></span><button class="btn" data-act="timer"></button><button class="btn primary" data-act="gradeall">Grade whole exam</button><button class="btn" data-act="reset">Clear answers</button></div>
+      <div class="mock-bar">${mock.minutes ? `<span class="mock-timer"></span><button class="btn" data-act="timer"></button>` : `<span class="mock-timer on">${esc(mock.title)}</span>`}<button class="btn primary" data-act="gradeall">Grade whole exam</button><button class="btn" data-act="reset">Clear answers</button></div>
       <div class="callout warn mock-timeup" hidden><b>Time’s up.</b> Press <i>Grade whole exam</i> to see how you did.</div>
       <div class="card mock-intro">${mock.intro}
-        <h3>Your instructor’s topic list → where it’s tested</h3>
+        <h3>${mock.practice ? "What this practises" : "Your instructor’s topic list → where it’s tested"}</h3>
         <div class="cov">${mock.topics.map((tp) => `<div class="cov-row"><span>${esc(tp.label)}</span><b>${coverage[tp.id] ? fmtM(coverage[tp.id][1]) + " marks" : ""}</b></div>`).join("")}</div>
-        <p class="muted">Total: ${fmtM(total)} marks · suggested time ${mock.minutes} minutes${state.last ? ` · last attempt ${state.last.pct}%` : ""}</p></div>
+        <p class="muted">Total: ${fmtM(total)} marks${mock.minutes ? ` · suggested time ${mock.minutes} minutes` : ""}${state.last ? ` · last attempt ${state.last.pct}%` : ""}</p></div>
       ${mock.parts.map(renderPart).join("")}
       <div class="mock-end"><button class="btn primary" data-act="gradeall">Grade whole exam</button></div>
       <section class="card mock-result" hidden></section></div>`;
