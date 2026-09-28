@@ -2,10 +2,11 @@
  * ACCT 212 study guide — chapter content.
  *
  * HOW TO ADD A CHAPTER
- * Copy one of the objects below, give it a new `id`, set `order` (the order it is
- * taught in class) and fill in the fields. Everything is optional except id, number,
- * title and order. HTML is allowed inside `html` strings.
+ * Copy one of the objects below, give it a new `id` and the chapter `number`,
+ * and fill in the fields. Class order, dates and which exam it's on come from
+ * data/calendar.js (COURSE.chapters). Everything is optional except id, number and title. HTML is allowed inside `html` strings.
  *
+ *   checklist   – "I can…" skills, used for the exam-prep readiness checklist
  *   summary     – short bullet points for the "Quick summary" tab and the Overall Notes page
  *   terms       – key vocabulary  { term, def }
  *   sections    – full notes      { title, html }
@@ -19,11 +20,18 @@ window.CHAPTERS = [
   {
     id: "ch1",
     number: 1,
-    order: 1,
-    exam: "Midterm 1",
     deck: "Class PowerPoints – 1",
     title: "The Purpose and Use of Financial Statements",
     blurb: "What accounting is, who uses it, the four financial statements and the accounting equation.",
+    checklist: [
+      "Name internal vs external users and what each needs",
+      "Compare proprietorships, partnerships and corporations",
+      "List the four financial statements in order and what each reports",
+      "Show how a transaction affects A = L + E",
+      "Prepare an income statement, statement of retained earnings and balance sheet",
+      "Explain the IFRS vs ASPE differences covered in class",
+      "Apply the 3-step ethics process"
+    ],
     summary: [
       "Accounting <b>identifies, records and communicates</b> the economic events of an organization to decision makers.",
       "Two groups of users: <b>internal</b> (managers, employees) and <b>external</b> (investors, creditors, CRA, customers).",
@@ -196,7 +204,11 @@ window.CHAPTERS = [
       { q: "Which statement is prepared FIRST?", options: ["Balance sheet", "Statement of cash flows", "Income statement", "Statement of retained earnings"], answer: 2, why: "Net income from the income statement is needed for the statement of retained earnings." },
       { q: "Paying a dividend affects…", options: ["The income statement only", "Retained earnings (↓) and cash (↓)", "Expenses (↑)", "Liabilities (↑)"], answer: 1, why: "Dividends reduce retained earnings directly; they are not expenses." },
       { q: "Signing a contract to perform services next month is…", options: ["Recorded as revenue", "Recorded as a receivable", "Not recorded — nothing has changed in A, L or E yet", "Recorded as deferred revenue"], answer: 2, why: "Only events that change assets, liabilities or equity are recorded." },
-      { q: "Assets $50,000, Liabilities $18,000. Equity = ?", options: ["$68,000", "$32,000", "$18,000", "$50,000"], answer: 1, why: "Equity = Assets − Liabilities = 50,000 − 18,000." }
+      { q: "Assets $50,000, Liabilities $18,000. Equity = ?", options: ["$68,000", "$32,000", "$18,000", "$50,000"], answer: 1, why: "Equity = Assets − Liabilities = 50,000 − 18,000." },
+      { q: "Beginning RE $12,000, net income $5,000, dividends $2,000. Ending RE?", options: ["$19,000", "$15,000", "$9,000", "$17,000"], answer: 1, why: "12,000 + 5,000 − 2,000 = 15,000." },
+      { q: "Under IFRS, which equity statement is required?", options: ["Statement of retained earnings", "Statement of changes in equity", "Statement of owner’s capital", "None"], answer: 1, why: "IFRS shows changes in ALL equity components; ASPE uses a statement of retained earnings." },
+      { q: "A private company chose IFRS last year. This year it…", options: ["Can switch back to ASPE anytime", "Must apply IFRS consistently", "Must use both", "Uses whichever gives higher income"], answer: 1, why: "Once the choice is made it must be applied consistently." },
+      { q: "Performed services for $900 on account. Effect?", options: ["Assets ↑, Liabilities ↑", "Assets ↑, Equity ↑", "Liabilities ↓, Equity ↑", "No effect until cash is received"], answer: 1, why: "A/R (asset) ↑ and revenue increases equity. Revenue is earned when the service is done." }
     ]
   },
 
@@ -204,11 +216,16 @@ window.CHAPTERS = [
   {
     id: "ch3",
     number: 3,
-    order: 2,
-    exam: "Midterm 1",
     deck: "Class PowerPoints – 3 (do before Ch 2)",
     title: "The Accounting Information System",
     blurb: "Debits and credits, journalizing, posting to the ledger and preparing a trial balance.",
+    checklist: [
+      "State the debit/credit rules for every account type",
+      "Journalize transactions in the general journal",
+      "Post to T-accounts and calculate balances",
+      "Prepare a trial balance",
+      "Explain which errors a trial balance can't find"
+    ],
     summary: [
       "The 9-step <b>accounting cycle</b>: Analyze → Journalize → Post → Unadjusted TB → Adjust → Adjusted TB → Statements → Close → Post-closing TB.",
       "<b>Debit = left, Credit = right.</b> Debits aren’t “good” or “bad”, and aren’t always increases.",
@@ -344,7 +361,11 @@ window.CHAPTERS = [
       { q: "Collected cash from a customer on account:", options: ["Dr Cash, Cr Service Revenue", "Dr Accounts Receivable, Cr Cash", "Dr Cash, Cr Accounts Receivable", "Dr Service Revenue, Cr Cash"], answer: 2, why: "The revenue was already recorded when earned. Now one asset (Cash) replaces another (A/R)." },
       { q: "Which account has a normal DEBIT balance?", options: ["Unearned Revenue", "Common Shares", "Supplies Expense", "Notes Payable"], answer: 2, why: "Expenses increase with debits." },
       { q: "A trial balance proves that…", options: ["No errors were made", "Total debits equal total credits", "All transactions were recorded", "Net income is correct"], answer: 1, why: "It only proves the ledger is in balance." },
-      { q: "An account shows debits of $8,000 and credits of $5,500. Its balance is…", options: ["$2,500 credit", "$13,500 debit", "$2,500 debit", "$5,500 credit"], answer: 2, why: "8,000 − 5,500 = 2,500 on the larger (debit) side." }
+      { q: "An account shows debits of $8,000 and credits of $5,500. Its balance is…", options: ["$2,500 credit", "$13,500 debit", "$2,500 debit", "$5,500 credit"], answer: 2, why: "8,000 − 5,500 = 2,500 on the larger (debit) side." },
+      { q: "Purchased equipment by signing a note payable. The entry is:", options: ["Dr Equipment / Cr Cash", "Dr Notes Payable / Cr Equipment", "Dr Equipment / Cr Notes Payable", "Dr Equipment / Cr Accounts Receivable"], answer: 2, why: "Asset ↑ (debit), liability ↑ (credit)." },
+      { q: "Received cash in advance for services to be done next month:", options: ["Dr Cash / Cr Service Revenue", "Dr Cash / Cr Unearned Revenue", "Dr Unearned Revenue / Cr Cash", "Dr Accounts Receivable / Cr Revenue"], answer: 1, why: "Not earned yet, so it’s a liability until the work is done." },
+      { q: "A $500 payment on account was posted as a debit to Cash and a credit to A/P. Will the trial balance balance?", options: ["Yes, but both accounts are wrong", "No, debits will exceed credits", "No, credits will exceed debits", "Yes, and it’s correct"], answer: 0, why: "Equal debit and credit were posted, just reversed. Trial balances don’t catch this." },
+      { q: "The journal is organized…", options: ["By account", "Alphabetically", "Chronologically", "By account number"], answer: 2, why: "The journal is the book of original entry, in date order. The ledger is organized by account." }
     ]
   },
 
@@ -352,11 +373,16 @@ window.CHAPTERS = [
   {
     id: "ch2",
     number: 2,
-    order: 3,
-    exam: "Midterm 1",
     deck: "Class PowerPoints – 2 (do after Ch 3)",
     title: "A Further Look at Financial Statements",
     blurb: "The classified statement of financial position, GAAP concepts and intro to ratio analysis.",
+    checklist: [
+      "Prepare a classified statement of financial position",
+      "Define current using one year or the operating cycle",
+      "Calculate carrying amount (cost − accumulated depreciation)",
+      "Explain the GAAP concepts (entity, going concern, currency, revenue recognition, measurement, cost constraint)",
+      "Calculate and interpret working capital, current ratio and debt to total assets"
+    ],
     summary: [
       "A <b>classified</b> statement of financial position groups items: current assets, non-current assets, current liabilities, non-current liabilities, shareholders’ equity.",
       "<b>Current</b> = converted to cash, sold or used within <b>one year or one operating cycle, whichever is longer</b>.",
@@ -530,7 +556,11 @@ window.CHAPTERS = [
       { q: "A company records its owner’s personal car loan on the company books. Which concept is violated?", options: ["Going concern", "Business entity", "Currency", "Cost constraint"], answer: 1, why: "Business and owner activities must be kept separate." },
       { q: "Equipment cost $20,000, accumulated depreciation $6,000. Carrying amount?", options: ["$26,000", "$20,000", "$14,000", "$6,000"], answer: 2, why: "20,000 − 6,000." },
       { q: "The current ratio measures…", options: ["Profitability", "Liquidity", "Solvency", "Market value"], answer: 1, why: "Short-term ability to pay current obligations." },
-      { q: "Current assets are usually listed in order of…", options: ["Size", "Liquidity", "Alphabetical order", "Date acquired"], answer: 1, why: "Order they’ll be converted to cash, sold or used up." }
+      { q: "Current assets are usually listed in order of…", options: ["Size", "Liquidity", "Alphabetical order", "Date acquired"], answer: 1, why: "Order they’ll be converted to cash, sold or used up." },
+      { q: "Current assets $45,000, current liabilities $30,000. Current ratio?", options: ["0.67 : 1", "1.5 : 1", "$15,000", "75 : 1"], answer: 1, why: "45,000 ÷ 30,000 = 1.5. ($15,000 is working capital.)" },
+      { q: "Total liabilities $120,000, total assets $300,000. Debt to total assets?", options: ["40%", "250%", "60%", "30%"], answer: 0, why: "120,000 ÷ 300,000 = 40%." },
+      { q: "Assets are reported at cost rather than liquidation value because of the…", options: ["Currency assumption", "Going concern assumption", "Cost constraint", "Business entity concept"], answer: 1, why: "The business is assumed to keep operating, so selling everything isn’t expected." },
+      { q: "A company’s operating cycle is 18 months. Receivables collectible in 15 months are…", options: ["Non-current", "Current", "Long-term investments", "Not reported"], answer: 1, why: "Current = one year OR one operating cycle, whichever is longer (18 months)." }
     ]
   },
 
@@ -538,11 +568,17 @@ window.CHAPTERS = [
   {
     id: "ch4",
     number: 4,
-    order: 4,
-    exam: "Midterm 1",
     deck: "Class PowerPoints – 4",
     title: "Accrual Accounting Concepts",
     blurb: "Adjusting entries, the adjusted trial balance and the closing process.",
+    checklist: [
+      "Identify the five types of adjusting entries",
+      "Journalize prepaid, depreciation, unearned, accrued expense and accrued revenue adjustments",
+      "Calculate income tax expense after all other adjustments",
+      "Prepare an adjusted trial balance",
+      "Prepare closing entries and a post-closing trial balance",
+      "Compare IFRS 5-step revenue recognition with ASPE"
+    ],
     summary: [
       "Adjusting entries are made at the <b>end of every period</b> so revenues and expenses land in the right period and assets/liabilities are stated correctly.",
       "Five types: <b>prepaid expenses, depreciation (amortization), unearned revenues, accrued expenses, accrued revenues</b>.",
@@ -751,7 +787,11 @@ window.CHAPTERS = [
       { q: "Which account is NOT closed at year end?", options: ["Service Revenue", "Dividends", "Accumulated Depreciation", "Rent Expense"], answer: 2, why: "It’s a balance-sheet (permanent) contra asset." },
       { q: "Equipment $30,000, residual $2,000, 7-year life. Annual straight-line depreciation?", options: ["$4,286", "$4,000", "$4,571", "$2,000"], answer: 1, why: "(30,000 − 2,000) ÷ 7 = 4,000." },
       { q: "Under IFRS, revenue is recognized when…", options: ["Cash is received", "The contract is signed", "A performance obligation is satisfied", "The invoice is sent"], answer: 2, why: "Step 5 of the IFRS 5-step model." },
-      { q: "Closing the Income Summary when there is a net LOSS:", options: ["Dr Income Summary / Cr Retained Earnings", "Dr Retained Earnings / Cr Income Summary", "Dr Dividends / Cr Income Summary", "No entry needed"], answer: 1, why: "A loss reduces retained earnings (debit)." }
+      { q: "Closing the Income Summary when there is a net LOSS:", options: ["Dr Income Summary / Cr Retained Earnings", "Dr Retained Earnings / Cr Income Summary", "Dr Dividends / Cr Income Summary", "No entry needed"], answer: 1, why: "A loss reduces retained earnings (debit)." },
+      { q: "$3,600 received on Nov 1 for 6 months of service, credited to Unearned Revenue. Dec 31 adjustment?", options: ["Dr Unearned Revenue 1,200 / Cr Revenue 1,200", "Dr Revenue 1,200 / Cr Unearned Revenue 1,200", "Dr Unearned Revenue 2,400 / Cr Revenue 2,400", "Dr Cash 1,200 / Cr Revenue 1,200"], answer: 0, why: "3,600 ÷ 6 = 600/month × 2 months (Nov, Dec) = 1,200 earned." },
+      { q: "A $10,000, 6% note was signed Oct 1. Accrued interest at Dec 31?", options: ["$600", "$150", "$50", "$450"], answer: 1, why: "10,000 × 6% × 3/12 = 150." },
+      { q: "Which adjustment decreases net income AND increases liabilities?", options: ["Accrued revenue", "Unearned revenue earned", "Accrued expense", "Prepaid expense used"], answer: 2, why: "Dr Expense / Cr Payable." },
+      { q: "Adjusted income before tax is $50,000 and the tax rate is 25%. Net income?", options: ["$50,000", "$12,500", "$37,500", "$62,500"], answer: 2, why: "Tax = 12,500; 50,000 − 12,500 = 37,500." }
     ]
   },
 
@@ -759,11 +799,16 @@ window.CHAPTERS = [
   {
     id: "ch5",
     number: 5,
-    order: 5,
-    exam: "Midterm 1",
     deck: "Class PowerPoints – 5",
     title: "Merchandising Operations",
     blurb: "Perpetual inventory, purchase & sales entries, freight terms, discounts and the multiple-step income statement.",
+    checklist: [
+      "Explain perpetual vs periodic inventory systems",
+      "Record purchases incl. freight, returns, allowances and discounts",
+      "Record sales with both the revenue and cost entries",
+      "Prepare a multiple-step income statement",
+      "Calculate gross profit % and profit margin"
+    ],
     summary: [
       "A merchandiser buys and resells goods: <b>Sales − Cost of Goods Sold = Gross Profit</b>, then − Operating expenses = Profit.",
       "<b>Perpetual</b> system: continuous record of inventory on hand and COGS. <b>Periodic</b>: physical count needed at period end.",

@@ -2,12 +2,23 @@
 (function () {
   "use strict";
 
-  const CH = (window.CHAPTERS || []).slice().sort((a, b) => a.order - b.order);
-  const COURSE = window.COURSE || { events: [] };
+  const COURSE = window.COURSE || { events: [], chapters: [] };
+  const EXAMS = window.EXAMS || [];
+  const CONTENT = window.CHAPTERS || [];
   const app = document.getElementById("app");
-  const byId = (id) => CH.find((c) => c.id === id);
 
-  /* ---------- per-viewer storage (progress, theme) ---------- */
+  /* ---------- chapters: roadmap (from the outline) + content (from the slides) ---------- */
+  const ROADMAP = (COURSE.chapters || []).map((r, i) => Object.assign({ order: i + 1 }, r, {
+    content: CONTENT.find((c) => c.number === r.number) || null
+  }));
+  // content chapters not in the roadmap still show up, at the end
+  CONTENT.forEach((c) => { if (!ROADMAP.some((r) => r.number === c.number)) ROADMAP.push({ number: c.number, title: c.title, order: ROADMAP.length + 1, content: c }); });
+  const CH = ROADMAP.filter((r) => r.content).map((r) => Object.assign(r.content, { order: r.order, meta: r }));
+  const byId = (id) => CH.find((c) => c.id === id);
+  const byNum = (n) => CH.find((c) => c.number === n);
+  const roadByNum = (n) => ROADMAP.find((r) => r.number === n);
+
+  /* ---------- per-viewer storage ---------- */
   const store = {
     get(key, fallback) {
       try { const v = localStorage.getItem("acct212." + key); return v ? JSON.parse(v) : fallback; }
@@ -19,6 +30,7 @@
   function setProgress(id, patch) {
     const p = progress(); p[id] = Object.assign({}, p[id], patch); store.set("progress", p); renderNav();
   }
+  const checks = () => store.get("checks", {});
 
   /* ---------- helpers ---------- */
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -27,17 +39,43 @@
   const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-  function parseDate(ev) {
-    const [y, m, d] = ev.date.split("-").map(Number);
-    const [hh, mm] = (ev.time || "00:00").split(":").map(Number);
-    return new Date(y, m - 1, d, hh, mm);
-  }
-  const events = (COURSE.events || []).map((e) => Object.assign({}, e, { when: parseDate(e) })).sort((a, b) => a.when - b.when);
-  const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
-  const upcoming = () => events.filter((e) => e.when >= startOfToday());
   const chLabel = (c) => `Ch ${c.number}`;
+  const ordinal = (n) => n + (["th", "st", "nd", "rd"][(n % 100 - 20) % 10] || ["th", "st", "nd", "rd"][n % 100] || "th");
+  const ymd = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+  const dayDiff = (a, b) => Math.round((ymd2(a) - ymd2(b)) / 86400000);
+  const ymd2 = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const fmtDay = (d, opts) => d.toLocaleDateString("en-CA", opts || { weekday: "short", month: "short", day: "numeric" });
+  const fmtTime = (t) => { if (!t) return ""; const [h, m] = t.split(":").map(Number); return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "am" : "pm"}`; };
 
+  const events = (COURSE.events || []).map((e) => {
+    const when = ymd(e.date);
+    if (e.time) { const [h, m] = e.time.split(":").map(Number); when.setHours(h, m); }
+    return Object.assign({}, e, { when, until: ymd(e.end || e.date) });
+  }).sort((a, b) => a.when - b.when || (a.type === "exam" ? -1 : 1));
+  const upcoming = (filter) => events.filter((e) => e.until >= startOfToday() && (!filter || filter(e)));
+  const nextExam = () => upcoming((e) => e.type === "exam")[0];
+  const examInfo = (id) => EXAMS.find((x) => x.id === id);
+  const examEvent = (id) => events.find((e) => e.type === "exam" && e.exam === id);
+  const dateRange = (e) => e.end ? `${fmtDay(e.when, { month: "short", day: "numeric" })} – ${fmtDay(e.until, { month: "short", day: "numeric" })}` : fmtDay(e.when, { weekday: "long", month: "long", day: "numeric" });
+
+  function countdownText(e) {
+    const days = dayDiff(e.when, startOfToday());
+    if (e.end && days <= 0) return { big: "Now", unit: "exam period is on" };
+    if (days === 0) return { big: "Today", unit: e.time ? "at " + fmtTime(e.time) : "" };
+    if (days === 1) return { big: "1", unit: "day to go · tomorrow" + (e.time ? " at " + fmtTime(e.time) : "") };
+    return { big: String(days), unit: `days to go · ${fmtDay(e.when, { weekday: "long", month: "long", day: "numeric" })}${e.time ? " at " + fmtTime(e.time) : ""}` };
+  }
+
+  function readiness(chapterNums) {
+    const c = checks(); let total = 0, done = 0;
+    chapterNums.map(byNum).filter(Boolean).forEach((ch) => {
+      (ch.checklist || []).forEach((_, i) => { total++; if ((c[ch.id] || [])[i]) done++; });
+    });
+    return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+  }
+
+  /* ---------- rendering helpers ---------- */
   function renderJE(entries) {
     let rows = "";
     entries.forEach((e) => {
@@ -65,121 +103,8 @@
       <tbody>${rows}<tr class="tot"><td>Totals ${dr === cr ? "✓ balanced" : "✗ not balanced"}</td><td class="num">$${money(dr)}</td><td class="num">$${money(cr)}</td></tr></tbody></table></div>`;
   }
 
-  /* ---------- navigation chrome ---------- */
-  function renderNav() {
-    const p = progress();
-    document.getElementById("navChapters").innerHTML = CH.map((c) =>
-      `<a href="#/chapter/${c.id}" data-ch="${c.id}"><span class="dot ${p[c.id] && p[c.id].read ? "done" : ""}"></span><span>${chLabel(c)} · ${esc(c.title)}</span></a>`).join("");
-    highlightNav();
-  }
-  function highlightNav() {
-    const parts = location.hash.replace(/^#\/?/, "").split("/");
-    const route = parts[0] || "home";
-    document.querySelectorAll("#nav > a").forEach((a) => a.classList.toggle("active", a.dataset.route === route || (route === "chapter" && a.dataset.route === "notes")));
-    document.querySelectorAll(".nav-chapters a").forEach((a) => a.classList.toggle("active", route === "chapter" && a.dataset.ch === parts[1]));
-  }
-
-  /* ---------- views ---------- */
-  function viewHome() {
-    const p = progress();
-    const read = CH.filter((c) => p[c.id] && p[c.id].read).length;
-    const pct = CH.length ? Math.round((read / CH.length) * 100) : 0;
-    const scores = CH.map((c) => p[c.id] && p[c.id].best).filter((x) => x != null);
-    const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-    const nextExam = upcoming().find((e) => e.type === "exam");
-    const next3 = upcoming().slice(0, 3);
-    const nextUp = CH.find((c) => !(p[c.id] && p[c.id].read)) || CH[0];
-
-    let examCard;
-    if (nextExam) {
-      const days = Math.ceil((nextExam.when - startOfToday()) / 86400000);
-      const covers = (nextExam.covers || []).map(byId).filter(Boolean);
-      examCard = `<div class="eyebrow">Next exam</div><h2>${esc(nextExam.title)}</h2>
-        <div class="countdown"><span class="big">${days}</span><span class="unit">day${days === 1 ? "" : "s"} away · ${nextExam.when.toLocaleDateString("en-CA", { weekday: "long", month: "long", day: "numeric" })}${nextExam.time ? " at " + esc(nextExam.time) : ""}</span></div>
-        ${nextExam.location ? `<p class="muted">📍 ${esc(nextExam.location)}${nextExam.weight ? " · worth " + esc(nextExam.weight) : ""}</p>` : ""}
-        ${covers.length ? `<div class="chips">${covers.map((c) => `<a class="chip" href="#/chapter/${c.id}">${chLabel(c)}</a>`).join("")}</div>` : ""}
-        <div class="btn-row"><a class="btn primary" href="#/overview">Review overall notes</a><a class="btn" href="#/practice">Practice</a></div>`;
-    } else {
-      examCard = `<div class="eyebrow">Next exam</div><h2>Midterm 1</h2>
-        <p class="muted">Exam dates haven’t been added yet — they’ll appear here with a countdown once the course outline is loaded into <code>data/calendar.js</code>.</p>
-        <p>Current Midterm 1 material: ${CH.filter((c) => c.exam === "Midterm 1").map((c) => `<a href="#/chapter/${c.id}">${chLabel(c)}</a>`).join(", ")}.</p>
-        <div class="btn-row"><a class="btn primary" href="#/overview">Review overall notes</a><a class="btn" href="#/calendar">Calendar</a></div>`;
-    }
-
-    return `
-      <div class="page-head"><div class="eyebrow">${esc(COURSE.school || "")} · ${esc(COURSE.term || "")}</div>
-        <h1>${esc(COURSE.code || "ACCT 212")} Study Guide</h1>
-        <p>Lecture notes, one-page summaries, worked examples and practice for ${esc(COURSE.name || "Financial Accounting")}. Chapters are listed in the order they’re taught in class.</p></div>
-      <div class="dash-top">
-        <div class="card">${examCard}</div>
-        <div class="card"><div class="eyebrow">Your progress</div>
-          <div class="progress-wrap"><div class="ring" style="--p:${pct}"><b>${pct}%</b></div>
-            <div class="stat-list"><span><b>${read}/${CH.length}</b> chapters reviewed</span>
-              <span>Quiz average: <b>${avg == null ? "—" : avg + "%"}</b></span>
-              <span class="muted">Saved in this browser only.</span></div></div>
-          <div class="btn-row" style="margin-top:14px"><a class="btn primary" href="#/chapter/${nextUp.id}">Continue: ${chLabel(nextUp)}</a></div>
-        </div>
-      </div>
-      <div class="section-title"><h2>Chapters</h2><span class="muted">In class order</span></div>
-      <div class="chapter-grid">${CH.map((c) => chapterCard(c, p)).join("")}</div>
-      <div class="section-title"><h2>Study tools</h2></div>
-      <div class="quick">
-        <a class="card" href="#/overview"><h3>Overall notes</h3><p>Every chapter’s key points, formulas and rules on one page.</p></a>
-        <a class="card" href="#/practice?mode=drill"><h3>Debit / credit drill</h3><p>Rapid-fire: which side increases this account?</p></a>
-        <a class="card" href="#/practice?mode=quiz"><h3>Practice quiz</h3><p>Multiple choice with explanations.</p></a>
-        <a class="card" href="#/practice?mode=cards"><h3>Flashcards</h3><p>Terms and formulas, tap to flip.</p></a>
-      </div>
-      <div class="section-title"><h2>Coming up</h2><a href="#/calendar">Full calendar →</a></div>
-      ${next3.length ? `<div class="event-list">${next3.map(eventRow).join("")}</div>` : `<div class="card empty"><p>No dates yet — add them from the course outline in <code>data/calendar.js</code>.</p></div>`}
-    `;
-  }
-
-  function chapterCard(c, p) {
-    const s = p[c.id] || {};
-    return `<a class="card ch-card" href="#/chapter/${c.id}">
-      <span class="num">CHAPTER ${c.number} · class ${c.order}</span><h3>${esc(c.title)}</h3><p>${esc(c.blurb || "")}</p>
-      <div class="meta">${c.exam ? `<span class="tag exam">${esc(c.exam)}</span>` : ""}${s.read ? `<span class="tag done">Reviewed</span>` : ""}${s.best != null ? `<span class="tag">Quiz best ${s.best}%</span>` : ""}</div></a>`;
-  }
-
-  function viewNotesIndex() {
-    const p = progress();
-    return `<div class="page-head"><div class="eyebrow">Chapter notes</div><h1>All chapters</h1>
-      <p>Each chapter has a <b>quick summary</b>, the <b>full lecture notes</b>, <b>worked examples</b> with solutions and <b>practice</b>. Want everything at once? Use <a href="#/overview">Overall notes</a>.</p></div>
-      <div class="chapter-grid">${CH.map((c) => chapterCard(c, p)).join("")}</div>`;
-  }
-
-  function viewChapter(id, tab) {
-    const c = byId(id);
-    if (!c) return viewNotFound();
-    tab = tab || "summary";
-    const i = CH.indexOf(c), prev = CH[i - 1], next = CH[i + 1];
-    const s = progress()[c.id] || {};
-    const tabs = [["summary", "Quick summary"], ["notes", "Full notes"], ["examples", "Worked examples"], ["practice", "Practice"]];
-    let body = "";
-    if (tab === "summary") {
-      body = `<ul class="summary-list">${(c.summary || []).map((x) => `<li>${x}</li>`).join("")}</ul>
-        ${c.terms && c.terms.length ? `<h2 style="margin-top:28px">Key terms</h2><div class="terms">${c.terms.map((t) => `<div><b>${esc(t.term)}</b>${esc(t.def)}</div>`).join("")}</div>` : ""}`;
-    } else if (tab === "notes") {
-      body = `<div class="btn-row" style="margin-bottom:12px"><button class="btn" data-act="expand">Expand all</button><button class="btn" data-act="collapse">Collapse all</button></div>
-        ${(c.sections || []).map((sec, k) => `<details class="note" ${k < 2 ? "open" : ""}><summary>${esc(sec.title)}</summary><div class="body">${sec.html}</div></details>`).join("")}`;
-    } else if (tab === "examples") {
-      body = (c.examples || []).map((ex, k) => renderExample(c, ex, k)).join("") || `<p class="muted">No worked examples yet.</p>`;
-    } else if (tab === "practice") {
-      body = `<div id="practiceMount"></div>`;
-    }
-    return `<div class="page-head"><div class="eyebrow">Chapter ${c.number} · taught ${ordinal(c.order)}${c.exam ? " · " + esc(c.exam) : ""}</div>
-      <h1>${esc(c.title)}</h1><p>${esc(c.blurb || "")}</p>
-      <div class="btn-row"><button class="btn ${s.read ? "" : "primary"}" data-act="toggle-read" data-id="${c.id}">${s.read ? "✓ Reviewed" : "Mark as reviewed"}</button>
-      <span class="muted" style="align-self:center">Source: ${esc(c.deck || "")}</span></div></div>
-      <div class="tabs">${tabs.map(([k, l]) => `<a href="#/chapter/${c.id}/${k}" class="${tab === k ? "active" : ""}">${l}</a>`).join("")}</div>
-      ${body}
-      <div class="ch-foot">${prev ? `<a class="btn" href="#/chapter/${prev.id}">← ${chLabel(prev)}: ${esc(prev.title)}</a>` : "<span></span>"}
-        ${next ? `<a class="btn" href="#/chapter/${next.id}">${chLabel(next)}: ${esc(next.title)} →</a>` : ""}</div>`;
-  }
-  const ordinal = (n) => n + (["th", "st", "nd", "rd"][(n % 100 - 20) % 10] || ["th", "st", "nd", "rd"][n % 100] || "th");
-
-  function renderExample(c, ex, k) {
-    const uid = `${c.id}-ex${k}`;
+  function renderExample(uidBase, ex, k) {
+    const uid = `${uidBase}-ex${k}`;
     if (ex.interactive === "equation") {
       return `<div class="card example"><h3>${esc(ex.title)}</h3><div class="prompt">${ex.prompt}</div><div data-equation="${uid}"></div></div>`;
     }
@@ -188,6 +113,199 @@
     return `<div class="card example"><h3>${esc(ex.title)}</h3><div class="prompt">${ex.prompt}</div>
       <button class="btn primary reveal-btn" data-act="reveal" data-target="${uid}">Show solution</button>
       <div id="${uid}" hidden>${steps}</div></div>`;
+  }
+
+  function ring(pct, label) {
+    return `<div class="ring" style="--p:${pct}"><b>${label != null ? label : pct + "%"}</b></div>`;
+  }
+
+  function checklistHtml(ch) {
+    const c = checks()[ch.id] || [];
+    return `<ul class="checklist">${(ch.checklist || []).map((item, i) => `<li><label><input type="checkbox" data-check="${ch.id}:${i}" ${c[i] ? "checked" : ""}><span>${esc(item)}</span></label></li>`).join("")}</ul>`;
+  }
+
+  /* ---------- study plan ---------- */
+  function studyPlan(ev, info) {
+    const today = startOfToday();
+    const days = dayDiff(ev.when, today);
+    const chs = info.chapters.map(byNum).filter(Boolean);
+    const missing = info.chapters.filter((n) => !byNum(n));
+    if (days < 0 || days > 14) return "";
+    const plan = [];
+    if (days === 0) {
+      plan.push({ d: today, title: "Exam day", tasks: ["Skim the <a href='#/overview?exam=" + info.id + "'>overall notes</a>: equation, debit/credit rules, adjusting-entry table", "Pack a calculator (no phones)", "Arrive early and breathe. You’ve got this."] });
+    } else {
+      const studyDays = Math.max(1, days - 1);
+      const perDay = Math.ceil(chs.length / studyDays);
+      for (let i = 0; i < days; i++) {
+        const d = new Date(today); d.setDate(today.getDate() + i);
+        const isLast = i === days - 1 && days > 1;
+        if (isLast || days === 1) {
+          plan.push({ d, title: days === 1 ? "Cram day: everything" : "Final review", tasks: [
+            `Work the <a href="#/exam/${info.id}#mock">mock exam</a> without looking at solutions`,
+            `Take the <a href="#/practice?mode=quiz&exam=${info.id}">mixed quiz</a> and aim for 80%+`,
+            `Re-read the <a href="#/overview?exam=${info.id}">overall notes</a> and tick off your checklist`] });
+        } else {
+          const slice = chs.slice(i * perDay, (i + 1) * perDay);
+          if (!slice.length) { plan.push({ d, title: "Catch-up / practice", tasks: [`<a href="#/practice?mode=drill">Debit/credit drill</a> until you hit a 20 streak`, "Redo any worked example you got wrong"] }); continue; }
+          plan.push({ d, title: slice.map((c) => `${chLabel(c)}: ${esc(c.title)}`).join(" + "), tasks: slice.flatMap((c) => [
+            `<a href="#/chapter/${c.id}/summary">${chLabel(c)} summary</a> → <a href="#/chapter/${c.id}/notes">full notes</a>`,
+            `Try the <a href="#/chapter/${c.id}/examples">${chLabel(c)} worked examples</a> before revealing the answers`,
+            `<a href="#/chapter/${c.id}/practice">${chLabel(c)} quiz</a> + tick off the checklist`]) });
+        }
+      }
+    }
+    return `<div class="card"><div class="eyebrow">Study plan · ${days === 0 ? "exam today" : days + " day" + (days === 1 ? "" : "s") + " left"}</div>
+      <ol class="plan">${plan.map((p, i) => `<li class="${i === 0 ? "now" : ""}"><div class="plan-day"><b>${i === 0 ? "Today" : fmtDay(p.d, { weekday: "short" })}</b><span>${fmtDay(p.d, { month: "short", day: "numeric" })}</span></div>
+        <div><h4>${p.title}</h4><ul>${p.tasks.map((t) => `<li>${t}</li>`).join("")}</ul></div></li>`).join("")}</ol>
+      ${missing.length ? `<p class="muted">Notes for Ch ${missing.join(", ")} haven’t been added yet. Use your textbook and slides for those.</p>` : ""}</div>`;
+  }
+
+  /* ---------- navigation chrome ---------- */
+  function renderNav() {
+    const p = progress();
+    document.getElementById("navChapters").innerHTML = CH.map((c) =>
+      `<a href="#/chapter/${c.id}" data-ch="${c.id}"><span class="dot ${p[c.id] && p[c.id].read ? "done" : ""}"></span><span>${chLabel(c)} · ${esc(c.title)}</span></a>`).join("");
+    const ne = nextExam();
+    const examLink = document.getElementById("navExam");
+    if (examLink) { examLink.href = ne ? `#/exam/${ne.exam}` : "#/calendar"; examLink.textContent = ne ? `Exam prep · ${ne.title.replace(" Exam", "")}` : "Exam prep"; }
+    highlightNav();
+  }
+  function highlightNav() {
+    const parts = location.hash.replace(/^#\/?/, "").split(/[/?]/);
+    const route = parts[0] || "home";
+    document.querySelectorAll("#nav > a").forEach((a) => a.classList.toggle("active", a.dataset.route === route || (route === "chapter" && a.dataset.route === "notes")));
+    document.querySelectorAll(".nav-chapters a").forEach((a) => a.classList.toggle("active", route === "chapter" && a.dataset.ch === parts[1]));
+  }
+
+  /* ---------- views ---------- */
+  function viewHome() {
+    const p = progress();
+    const ne = nextExam();
+    const info = ne && examInfo(ne.exam);
+    const examChs = info ? info.chapters.map(byNum).filter(Boolean) : CH;
+    const reviewed = examChs.filter((c) => p[c.id] && p[c.id].read).length;
+    const scores = examChs.map((c) => p[c.id] && p[c.id].best).filter((x) => x != null);
+    const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    const ready = info ? readiness(info.chapters) : { pct: 0, done: 0, total: 0 };
+    const today = startOfToday();
+    const weekEnd = new Date(today); weekEnd.setDate(today.getDate() + 8);
+    const week = upcoming((e) => e.when < weekEnd);
+    const deadlines = upcoming((e) => e.type !== "class" && e.type !== "break").slice(0, 5);
+    const nextUp = examChs.find((c) => !(p[c.id] && p[c.id].read)) || examChs[0] || CH[0];
+
+    let examCard = `<div class="eyebrow">Next exam</div><h2>No upcoming exams</h2>`;
+    if (ne) {
+      const cd = countdownText(ne);
+      examCard = `<div class="eyebrow">Next exam · ${esc(ne.weight || "")}</div><h2>${esc(ne.title)}</h2>
+        <div class="countdown"><span class="big">${cd.big}</span><span class="unit">${cd.unit}</span></div>
+        <p class="muted">${esc(ne.location || "")}</p>
+        <div class="chips">${(ne.covers || []).map((n) => { const c = byNum(n); return c ? `<a class="chip" href="#/chapter/${c.id}">Ch ${n}</a>` : `<span class="chip off">Ch ${n}</span>`; }).join("")}</div>
+        <div class="btn-row">${info ? `<a class="btn primary" href="#/exam/${ne.exam}">Open ${esc(ne.title.replace(" Exam", ""))} prep</a><a class="btn" href="#/exam/${ne.exam}#mock">Mock exam</a>` : ""}<a class="btn" href="#/overview${info ? "?exam=" + info.id : ""}">Overall notes</a></div>`;
+    }
+
+    return `
+      <div class="page-head"><div class="eyebrow">${esc(COURSE.school || "")} · ${esc(COURSE.term || "")}${COURSE.section ? " · Section " + esc(COURSE.section) : ""}</div>
+        <h1>${esc(COURSE.code || "ACCT 212")} Study Guide</h1>
+        <p>Lecture notes, one-page summaries, worked examples, practice and a mock exam for ${esc(COURSE.name || "")}, organized around the course outline.</p></div>
+      <div class="dash-top">
+        <div class="card hero">${examCard}</div>
+        <div class="card"><div class="eyebrow">${info ? esc(info.title) + " readiness" : "Your progress"}</div>
+          <div class="progress-wrap">${ring(ready.pct)}
+            <div class="stat-list"><span><b>${ready.done}/${ready.total}</b> skills checked off</span>
+              <span><b>${reviewed}/${examChs.length}</b> chapters reviewed</span>
+              <span>Quiz average: <b>${avg == null ? "—" : avg + "%"}</b></span>
+              <span class="muted">Saved in this browser only.</span></div></div>
+          <div class="btn-row" style="margin-top:14px">${nextUp ? `<a class="btn primary" href="#/chapter/${nextUp.id}">Continue: ${chLabel(nextUp)}</a>` : ""}${info ? `<a class="btn" href="#/exam/${info.id}#checklist">Checklist</a>` : ""}</div>
+        </div>
+      </div>
+      ${ne && info ? studyPlan(ne, info) : ""}
+      <div class="dash-two">
+        <div><div class="section-title"><h2>Next 7 days</h2><a href="#/calendar">Calendar →</a></div>
+          ${week.length ? `<div class="agenda">${week.map(agendaRow).join("")}</div>` : `<div class="card empty"><p>Nothing in the next week.</p></div>`}</div>
+        <div><div class="section-title"><h2>Deadlines</h2><a href="#/calendar">All →</a></div>
+          <div class="agenda">${deadlines.map(agendaRow).join("")}</div></div>
+      </div>
+      <div class="section-title"><h2>Chapters with notes</h2><a href="#/course">Course roadmap →</a></div>
+      <div class="chapter-grid">${CH.map((c) => chapterCard(c, p)).join("")}</div>
+      <div class="section-title"><h2>Study tools</h2></div>
+      <div class="quick">
+        <a class="card" href="#/overview"><h3>Overall notes</h3><p>Every rule, formula and key point on one printable page.</p></a>
+        <a class="card" href="#/practice?mode=drill"><h3>Debit / credit drill</h3><p>Rapid-fire: which side increases this account?</p></a>
+        <a class="card" href="#/practice?mode=quiz"><h3>Practice quiz</h3><p>Multiple choice with explanations.</p></a>
+        <a class="card" href="#/grades"><h3>Grade calculator</h3><p>What do you need on the final?</p></a>
+      </div>`;
+  }
+
+  function agendaRow(e) {
+    const d = dayDiff(e.when, startOfToday());
+    const rel = e.end && d < 0 ? "on now" : d === 0 ? "today" : d === 1 ? "tomorrow" : `in ${d} days`;
+    return `<div class="agenda-row ${esc(e.type)}"><div class="agenda-date"><b>${e.when.getDate()}</b><span>${MONTHS[e.when.getMonth()]}</span></div>
+      <div><div class="agenda-title">${e.exam ? `<a href="#/exam/${e.exam}">${esc(e.title)}</a>` : (e.type === "class" ? "Class: " : "") + esc(e.title)}</div>
+      <div class="muted">${e.end ? dateRange(e) + " · " : ""}${e.time ? fmtTime(e.time) + " · " : ""}${rel}${e.weight ? " · " + esc(e.weight) : ""}</div></div>
+      <span class="tag ${esc(e.type)}">${{ exam: "Exam", quiz: "Lab quiz", assignment: "Due", class: "Class", break: "No class" }[e.type] || ""}</span></div>`;
+  }
+
+  function chapterCard(c, p) {
+    const s = p[c.id] || {};
+    const m = c.meta || {};
+    return `<a class="card ch-card" href="#/chapter/${c.id}">
+      <span class="num">CHAPTER ${c.number} · taught ${ordinal(c.order)}</span><h3>${esc(c.title)}</h3><p>${esc(c.blurb || "")}</p>
+      <div class="meta">${m.exam ? `<span class="tag exam">${esc(m.exam)}</span>` : ""}${s.read ? `<span class="tag done">Reviewed</span>` : ""}${s.best != null ? `<span class="tag">Quiz best ${s.best}%</span>` : ""}</div></a>`;
+  }
+
+  function roadmapCard(r) {
+    const p = progress();
+    if (r.content) return chapterCard(r.content, p);
+    const first = r.taught && r.taught[0] ? ymd(r.taught[0]) : null;
+    return `<div class="card ch-card soon"><span class="num">CHAPTER ${r.number} · taught ${ordinal(r.order)}</span><h3>${esc(r.title)}</h3>
+      <p>Notes coming once the slides are added.${first ? ` Taught from ${fmtDay(first)}.` : ""}${r.note ? " " + esc(r.note) + "." : ""}</p>
+      <div class="meta">${r.exam ? `<span class="tag exam">${esc(r.exam)}</span>` : ""}<span class="tag">Coming soon</span></div></div>`;
+  }
+
+  function viewNotesIndex() {
+    const groups = {};
+    ROADMAP.forEach((r) => { const g = r.exam || "Other"; (groups[g] = groups[g] || []).push(r); });
+    return `<div class="page-head"><div class="eyebrow">Chapter notes</div><h1>All chapters</h1>
+      <p>Each chapter has a <b>quick summary</b>, the <b>full lecture notes</b>, <b>worked examples</b> with solutions and <b>practice</b>. Chapters are grouped by the exam they’re on, in the order they’re taught. Want everything at once? Use <a href="#/overview">Overall notes</a>.</p></div>
+      ${Object.keys(groups).map((g) => `<div class="section-title"><h2>${esc(g)}</h2>${EXAMS.find((x) => x.title.replace(" Exam", "") === g || x.title === g) ? `<a href="#/exam/${EXAMS.find((x) => x.title.replace(" Exam", "") === g || x.title === g).id}">Exam prep →</a>` : ""}</div>
+        <div class="chapter-grid">${groups[g].map(roadmapCard).join("")}</div>`).join("")}`;
+  }
+
+  function viewChapter(id, tab) {
+    const c = byId(id);
+    if (!c) return viewNotFound();
+    tab = tab || "summary";
+    const i = CH.indexOf(c), prev = CH[i - 1], next = CH[i + 1];
+    const s = progress()[c.id] || {};
+    const m = c.meta || {};
+    const tabs = [["summary", "Quick summary"], ["notes", "Full notes"], ["examples", "Worked examples"], ["practice", "Practice"]];
+    let body = "";
+    if (tab === "summary") {
+      body = `<ul class="summary-list">${(c.summary || []).map((x) => `<li>${x}</li>`).join("")}</ul>
+        ${c.checklist && c.checklist.length ? `<h2 style="margin-top:28px">Can you do this?</h2><p class="muted">Tick each one when you could do it on the exam without notes.</p><div class="card">${checklistHtml(c)}</div>` : ""}
+        ${c.terms && c.terms.length ? `<h2 style="margin-top:28px">Key terms</h2><div class="terms">${c.terms.map((t) => `<div><b>${esc(t.term)}</b>${esc(t.def)}</div>`).join("")}</div>` : ""}`;
+    } else if (tab === "notes") {
+      body = `<div class="btn-row" style="margin-bottom:12px"><button class="btn" data-act="expand">Expand all</button><button class="btn" data-act="collapse">Collapse all</button></div>
+        ${(c.sections || []).map((sec, k) => `<details class="note" ${k < 2 ? "open" : ""}><summary>${esc(sec.title)}</summary><div class="body">${sec.html}</div></details>`).join("")}`;
+    } else if (tab === "examples") {
+      body = (c.examples || []).map((ex, k) => renderExample(c.id, ex, k)).join("") || `<p class="muted">No worked examples yet.</p>`;
+    } else if (tab === "practice") {
+      body = `<div id="practiceMount"></div>`;
+    }
+    const exam = EXAMS.find((x) => x.chapters.includes(c.number) && x.id !== "final");
+    return `<div class="page-head"><div class="eyebrow">Chapter ${c.number} · taught ${ordinal(c.order)}${m.exam ? " · " + esc(m.exam) : ""}</div>
+      <h1>${esc(c.title)}</h1><p>${esc(c.blurb || "")}</p>
+      <div class="meta-row">${m.taught ? `<span>📅 Class: ${m.taught.map((d) => fmtDay(ymd(d), { month: "short", day: "numeric" })).join(", ")}</span>` : ""}
+        ${m.homework ? `<span>📝 WileyPlus due ${fmtDay(ymd(m.homework), { month: "short", day: "numeric" })}</span>` : ""}
+        ${m.lab ? `<span>🧪 ${esc(m.lab)}</span>` : ""}${m.note ? `<span>ℹ️ ${esc(m.note)}</span>` : ""}</div>
+      <div class="btn-row"><button class="btn ${s.read ? "" : "primary"}" data-act="toggle-read" data-id="${c.id}">${s.read ? "✓ Reviewed" : "Mark as reviewed"}</button>
+      ${exam ? `<a class="btn" href="#/exam/${exam.id}">${esc(exam.title)} prep</a>` : ""}
+      <span class="muted" style="align-self:center">Source: ${esc(c.deck || "")}</span></div></div>
+      <div class="tabs">${tabs.map(([k, l]) => `<a href="#/chapter/${c.id}/${k}" class="${tab === k ? "active" : ""}">${l}</a>`).join("")}</div>
+      ${body}
+      <div class="ch-foot">${prev ? `<a class="btn" href="#/chapter/${prev.id}">← ${chLabel(prev)}: ${esc(prev.title)}</a>` : "<span></span>"}
+        ${next ? `<a class="btn" href="#/chapter/${next.id}">${chLabel(next)}: ${esc(next.title)} →</a>` : ""}</div>`;
   }
 
   function mountEquation(el, ex) {
@@ -235,10 +353,42 @@
     draw();
   }
 
-  function viewOverview() {
-    return `<div class="page-head"><div class="eyebrow">Overall notes</div><h1>Everything on one page</h1>
-      <p>The big picture for the whole course so far — core rules first, then every chapter’s key points in class order. Great for the night before an exam. Use your browser’s print to save a PDF.</p>
-      <div class="btn-row"><button class="btn" onclick="window.print()">Print / save as PDF</button></div></div>
+  /* ---------- exam prep ---------- */
+  function viewExam(id) {
+    const info = examInfo(id), ev = examEvent(id);
+    if (!info) return viewNotFound();
+    const ready = readiness(info.chapters);
+    const cd = ev ? countdownText(ev) : null;
+    const past = ev && ev.until < startOfToday();
+    const chs = info.chapters.map((n) => roadByNum(n)).filter(Boolean);
+    return `<div class="page-head"><div class="eyebrow">Exam prep${ev && ev.weight ? " · worth " + esc(ev.weight) : ""}</div>
+      <h1>${esc(info.title)}</h1>
+      <p>${ev ? `${dateRange(ev)}${ev.time ? " · " + fmtTime(ev.time) : ""} · ${esc(ev.location || "")}` : ""}</p></div>
+      <div class="dash-top">
+        <div class="card hero"><div class="eyebrow">${past ? "Done" : "Countdown"}</div>
+          ${cd && !past ? `<div class="countdown"><span class="big">${cd.big}</span><span class="unit">${cd.unit}</span></div>` : past ? "<h2>This exam is finished 🎉</h2>" : ""}
+          <h4>What to expect</h4><ul>${info.format.map((f) => `<li>${f}</li>`).join("")}</ul>
+          <div class="btn-row">${info.problems.length ? `<a class="btn primary" href="#/exam/${id}#mock">Mock exam</a>` : ""}<a class="btn" href="#/practice?mode=quiz&exam=${id}">Mixed quiz</a><a class="btn" href="#/practice?mode=cards&exam=${id}">Flashcards</a><a class="btn" href="#/overview?exam=${id}">Overall notes</a></div></div>
+        <div class="card" id="checklist-top"><div class="eyebrow">Readiness</div>
+          <div class="progress-wrap">${ring(ready.pct)}<div class="stat-list"><span><b>${ready.done}/${ready.total}</b> skills checked off</span><span class="muted">Tick the checklist below as you master each skill.</span></div></div></div>
+      </div>
+      ${ev && !past ? studyPlan(ev, info) : ""}
+      <div class="section-title" id="checklist"><h2>Chapter checklist</h2><span class="muted">Can you do it without notes?</span></div>
+      <div class="grid">${chs.map((r) => r.content ? `<div class="card"><div class="section-title" style="margin:0 0 6px"><h3 style="margin:0"><a href="#/chapter/${r.content.id}">Ch ${r.number} · ${esc(r.title)}</a></h3><a class="btn" href="#/chapter/${r.content.id}/summary">Review</a></div>${checklistHtml(r.content)}</div>`
+        : `<div class="card soon"><h3 style="margin:0">Ch ${r.number} · ${esc(r.title)}</h3><p class="muted" style="margin:6px 0 0">Notes not added yet. Use the textbook and slides for now.</p></div>`).join("")}</div>
+      ${info.tips.length ? `<div class="section-title"><h2>Exam tips</h2></div><div class="card"><ul class="tips">${info.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>` : ""}
+      ${info.problems.length ? `<div class="section-title" id="mock"><h2>Mock exam</h2><span class="muted">One company, start to finish, like a real paper midterm. Try each problem on paper first.</span></div>
+        ${info.problems.map((pr, k) => renderExample("exam-" + id, pr, k)).join("")}` : ""}`;
+  }
+
+  /* ---------- overall notes ---------- */
+  function viewOverview(query) {
+    const info = examInfo(query.get("exam") || "");
+    const chs = info ? info.chapters.map(byNum).filter(Boolean) : CH;
+    return `<div class="page-head"><div class="eyebrow">Overall notes${info ? " · " + esc(info.title) : ""}</div><h1>Everything on one page</h1>
+      <p>The big picture: core rules first, then every chapter’s key points in class order. Great for the night before an exam. Use your browser’s print to save a PDF.</p>
+      <div class="btn-row"><div class="seg">${[["", "All chapters"]].concat(EXAMS.filter((x) => x.chapters.some(byNum)).map((x) => [x.id, x.title.replace(" Exam", "")])).map(([k, l]) => `<a href="#/overview${k ? "?exam=" + k : ""}" class="${(info ? info.id : "") === k ? "on" : ""}">${esc(l)}</a>`).join("")}</div>
+      <button class="btn" onclick="window.print()">Print / save as PDF</button></div></div>
 
       <div class="card"><h2>The accounting equation</h2>
         <div class="formula">Assets = Liabilities + Share Capital + Retained Earnings</div>
@@ -275,27 +425,30 @@
         <tr><td>Unearned revenue earned</td><td>Dr Unearned Revenue / Cr Revenue</td><td>Revenue ↓, NI ↓, liabilities ↑</td></tr>
         <tr><td>Accrued expense</td><td>Dr Expense / Cr Payable</td><td>Expenses ↓, NI ↑, liabilities ↓</td></tr>
         <tr><td>Accrued revenue</td><td>Dr Receivable / Cr Revenue</td><td>Revenue ↓, NI ↓, assets ↓</td></tr>
+        <tr><td>Accrued interest</td><td>Dr Interest Exp / Cr Interest Payable</td><td>Principal × rate × months/12</td></tr>
         <tr><td>Income tax</td><td>Dr Income Tax Exp / Cr Income Tax Payable</td><td>Calculate last: adjusted income × rate</td></tr>
         </tbody></table></div>
-        <p><b>Never</b> Cash in an adjusting entry. <b>Closing:</b> revenues → Income Summary → expenses → Income Summary → Retained Earnings → close Dividends to RE.</p></div>
+        <p><b>Never</b> Cash in an adjusting entry. <b>Closing:</b> revenues → Income Summary; expenses → Income Summary; Income Summary → Retained Earnings; Dividends → RE.</p></div>
 
       <div class="card"><h2>Formula sheet</h2>
         <div class="table-wrap"><table><tbody>
         <tr><td>Straight-line depreciation</td><td>(Cost − Residual value) ÷ Useful life</td></tr>
         <tr><td>Carrying amount</td><td>Cost − Accumulated depreciation</td></tr>
+        <tr><td>Interest</td><td>Principal × Annual rate × Time (months ÷ 12)</td></tr>
         <tr><td>Working capital</td><td>Current assets − Current liabilities</td></tr>
         <tr><td>Current ratio</td><td>Current assets ÷ Current liabilities</td></tr>
         <tr><td>Debt to total assets</td><td>Total liabilities ÷ Total assets</td></tr>
-        <tr><td>Net sales</td><td>Sales − Sales returns & allowances − Sales discounts</td></tr>
+        <tr><td>Basic EPS</td><td>(Net income − Preferred dividends) ÷ Weighted avg. common shares</td></tr>
+        ${!info || info.chapters.includes(5) ? `<tr><td>Net sales</td><td>Sales − Sales returns & allowances − Sales discounts</td></tr>
         <tr><td>Gross profit</td><td>Net sales − COGS</td></tr>
         <tr><td>Gross profit %</td><td>(Net sales − COGS) ÷ Net sales × 100</td></tr>
         <tr><td>Profit margin</td><td>Profit ÷ Net sales</td></tr>
         <tr><td>COGS (periodic)</td><td>Beginning inventory + Purchases − Ending inventory</td></tr>
-        <tr><td>Purchase discount (2/10, n/30)</td><td>2% off if paid within 10 days, otherwise full amount in 30</td></tr>
+        <tr><td>Purchase discount (2/10, n/30)</td><td>2% off if paid within 10 days, otherwise full amount in 30</td></tr>` : ""}
         </tbody></table></div></div>
 
       <div class="section-title"><h2>Chapter by chapter</h2></div>
-      ${CH.map((c) => `<div class="card"><div class="eyebrow">Chapter ${c.number} · taught ${ordinal(c.order)}</div>
+      ${chs.map((c) => `<div class="card"><div class="eyebrow">Chapter ${c.number} · taught ${ordinal(c.order)}</div>
         <h2><a href="#/chapter/${c.id}">${esc(c.title)}</a></h2>
         <ul>${(c.summary || []).map((x) => `<li>${x}</li>`).join("")}</ul>
         <div class="btn-row"><a class="btn" href="#/chapter/${c.id}/notes">Full notes</a><a class="btn" href="#/chapter/${c.id}/examples">Worked examples</a></div></div>`).join("")}`;
@@ -316,19 +469,28 @@
 
   function viewPractice(query) {
     const mode = query.get("mode") || "drill";
-    const ch = query.get("ch") || "all";
+    const ch = query.get("ch") || "";
+    const exam = query.get("exam") || "";
+    const val = exam ? "exam:" + exam : ch || "all";
     return `<div class="page-head"><div class="eyebrow">Practice</div><h1>Test yourself</h1>
-      <p>Drill the debit/credit rules, flip through flashcards or take a quiz. Pick a chapter or mix them all.</p></div>
+      <p>Drill the debit/credit rules, flip through flashcards or take a quiz. Pick an exam, a chapter, or mix them all.</p></div>
       <div class="practice-controls">
         <div class="seg" role="tablist">${[["drill", "Dr/Cr drill"], ["cards", "Flashcards"], ["quiz", "Quiz"]].map(([k, l]) => `<button data-mode="${k}" class="${mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
-        ${mode !== "drill" ? `<select id="chSel"><option value="all">All chapters</option>${CH.map((c) => `<option value="${c.id}" ${ch === c.id ? "selected" : ""}>${chLabel(c)} · ${esc(c.title)}</option>`).join("")}</select>` : ""}
+        ${mode !== "drill" ? `<select id="chSel"><option value="all">All chapters</option>
+          ${EXAMS.filter((x) => x.chapters.some(byNum)).map((x) => `<option value="exam:${x.id}" ${val === "exam:" + x.id ? "selected" : ""}>${esc(x.title)} chapters</option>`).join("")}
+          ${CH.map((c) => `<option value="${c.id}" ${val === c.id ? "selected" : ""}>${chLabel(c)} · ${esc(c.title)}</option>`).join("")}</select>` : ""}
       </div><div id="practiceMount"></div>`;
   }
 
-  function mountPractice(el, mode, chId) {
-    const pool = chId === "all" ? CH : [byId(chId)].filter(Boolean);
+  function poolFor(sel) {
+    if (!sel || sel === "all") return CH;
+    if (sel.startsWith("exam:")) { const x = examInfo(sel.slice(5)); return x ? x.chapters.map(byNum).filter(Boolean) : CH; }
+    return [byId(sel)].filter(Boolean);
+  }
+  function mountPractice(el, mode, sel) {
+    const pool = poolFor(sel);
     if (mode === "cards") return mountCards(el, shuffle(pool.flatMap((c) => (c.flashcards || []).map((f) => Object.assign({ ch: c }, f)))));
-    if (mode === "quiz") return mountQuiz(el, shuffle(pool.flatMap((c) => (c.quiz || []).map((q) => Object.assign({ ch: c }, q)))), chId);
+    if (mode === "quiz") return mountQuiz(el, shuffle(pool.flatMap((c) => (c.quiz || []).map((q) => Object.assign({ ch: c }, q)))));
     return mountDrill(el);
   }
 
@@ -353,7 +515,7 @@
     draw();
   }
 
-  function mountQuiz(el, qs, chId) {
+  function mountQuiz(el, qs) {
     if (!qs.length) { el.innerHTML = `<p class="muted">No quiz questions yet.</p>`; return; }
     let i = 0, right = 0, answered = false;
     const perCh = {};
@@ -363,15 +525,17 @@
         Object.keys(perCh).forEach((id) => {
           const r = perCh[id]; const score = Math.round((r.right / r.total) * 100);
           const prev = (progress()[id] || {}).best;
-          if (chId === id || chId === "all") setProgress(id, { best: prev == null ? score : Math.max(prev, score) });
+          setProgress(id, { best: prev == null ? score : Math.max(prev, score) });
         });
+        const weak = Object.keys(perCh).map((id) => ({ c: byId(id), s: perCh[id].right / perCh[id].total })).filter((x) => x.s < 0.8);
         el.innerHTML = `<div class="card empty"><div class="score">${pct}%</div><p>${right} of ${qs.length} correct</p>
+          ${weak.length ? `<p>Review: ${weak.map((w) => `<a href="#/chapter/${w.c.id}/notes">${chLabel(w.c)}</a> (${Math.round(w.s * 100)}%)`).join(", ")}</p>` : "<p>80%+ on every chapter. Nice work.</p>"}
           <button class="btn primary" data-q="restart">Try again</button></div>`;
         return;
       }
       const q = qs[i];
       el.innerHTML = `<div class="progress-line"><span style="width:${(i / qs.length) * 100}%"></span></div>
-        <div class="card"><div class="eyebrow">Question ${i + 1} of ${qs.length} · ${chLabel(q.ch)}</div>
+        <div class="card"><div class="eyebrow">Question ${i + 1} of ${qs.length} · ${chLabel(q.ch)} · ${right} correct</div>
         <div class="quiz-q">${esc(q.q)}</div>
         <div class="options">${q.options.map((o, k) => `<button data-opt="${k}">${esc(o)}</button>`).join("")}</div>
         <div id="why"></div></div>`;
@@ -422,42 +586,127 @@
   }
 
   /* ---------- calendar ---------- */
+  const FILTERS = [["deadlines", "Deadlines"], ["all", "Everything"], ["exam", "Exams"], ["quiz", "Lab quizzes"], ["assignment", "Homework"], ["class", "Classes"]];
+  const filterFn = (f) => f === "all" ? null : f === "deadlines" ? (e) => ["exam", "quiz", "assignment"].includes(e.type) : (e) => e.type === f || (f === "class" && e.type === "break");
+
   function eventRow(e) {
-    const covers = (e.covers || []).map(byId).filter(Boolean);
-    return `<div class="card event ${e.type === "exam" ? "exam" : ""}">
+    const covers = (e.covers || []).map((n) => ({ n, c: byNum(n) }));
+    const d = dayDiff(e.when, startOfToday());
+    return `<div class="card event ${esc(e.type)}">
       <div class="date-box"><span>${MONTHS[e.when.getMonth()]}</span><b>${e.when.getDate()}</b></div>
-      <div><h3 style="margin-bottom:2px">${esc(e.title)}</h3>
-        <div class="muted">${e.when.toLocaleDateString("en-CA", { weekday: "long" })}${e.time ? " · " + esc(e.time) : ""}${e.location ? " · " + esc(e.location) : ""}${e.weight ? " · " + esc(e.weight) : ""}</div>
+      <div><h3 style="margin-bottom:2px">${e.exam ? `<a href="#/exam/${e.exam}">${esc(e.title)}</a>` : (e.type === "class" ? "Class: " : "") + esc(e.title)}</h3>
+        <div class="muted">${e.end ? dateRange(e) : fmtDay(e.when, { weekday: "long" })}${e.time ? " · " + fmtTime(e.time) : ""}${e.location ? " · " + esc(e.location) : ""}${e.weight ? " · " + esc(e.weight) : ""}${d > 0 ? ` · in ${d} day${d === 1 ? "" : "s"}` : d === 0 ? " · today" : ""}</div>
         ${e.notes ? `<p style="margin:4px 0 0">${esc(e.notes)}</p>` : ""}
-        ${covers.length ? `<div class="chips" style="margin-bottom:0">${covers.map((c) => `<a class="chip" href="#/chapter/${c.id}">${chLabel(c)}</a>`).join("")}</div>` : ""}</div></div>`;
+        ${covers.length && e.type !== "assignment" ? `<div class="chips" style="margin-bottom:0">${covers.map((x) => x.c ? `<a class="chip" href="#/chapter/${x.c.id}">Ch ${x.n}</a>` : `<span class="chip off">Ch ${x.n}</span>`).join("")}</div>` : ""}</div></div>`;
   }
 
   function viewCalendar(query) {
     const now = new Date();
-    const first = upcoming()[0];
-    let y = +(query.get("y") || (first ? first.when.getFullYear() : now.getFullYear()));
-    let m = +(query.get("m") || (first ? first.when.getMonth() : now.getMonth()));
-    if (!query.get("y") && first && (first.when.getMonth() !== now.getMonth() || first.when.getFullYear() !== now.getFullYear())) { y = now.getFullYear(); m = now.getMonth(); }
+    const y = +(query.get("y") || now.getFullYear());
+    const m = +(query.get("m") != null ? query.get("m") : now.getMonth());
+    const f = query.get("f") || "deadlines";
+    const fn = filterFn(f);
+    const shown = fn ? events.filter(fn) : events;
     const start = new Date(y, m, 1), gridStart = new Date(y, m, 1 - start.getDay());
     const today = startOfToday();
     const cells = [];
     for (let k = 0; k < 42; k++) {
       const d = new Date(gridStart); d.setDate(gridStart.getDate() + k);
-      const evs = events.filter((e) => e.when.toDateString() === d.toDateString());
+      if (k === 35 && d.getMonth() !== m) break;
+      const evs = shown.filter((e) => ymd2(e.when) <= d && e.until >= d);
       cells.push(`<div class="day ${d.getMonth() !== m ? "out" : ""} ${d.getTime() === today.getTime() ? "today" : ""}"><span class="n">${d.getDate()}</span>
-        ${evs.map((e) => `<span class="ev ${esc(e.type || "")}" title="${esc(e.title)}">${esc(e.title)}</span>`).join("")}</div>`);
-      if (k >= 34 && d.getMonth() !== m && d.getDay() === 6) break;
+        ${evs.map((e) => `<span class="ev ${esc(e.type)}" title="${esc(e.title)}">${esc(e.title)}</span>`).join("")}</div>`);
     }
     const pm = m === 0 ? [y - 1, 11] : [y, m - 1], nm = m === 11 ? [y + 1, 0] : [y, m + 1];
-    const up = upcoming(), past = events.filter((e) => e.when < today);
-    return `<div class="page-head"><div class="eyebrow">${esc(COURSE.term || "")}</div><h1>Course calendar</h1>
-      <p>Exams, quizzes and due dates from the course outline. Exams also show a countdown on the dashboard.</p></div>
-      ${!COURSE.outlineLoaded ? `<div class="callout warn"><b>Course outline not added yet.</b> Exam and assignment dates will appear here once they’re entered in <code>data/calendar.js</code>.</div>` : ""}
-      <div class="card"><div class="cal-head"><a class="btn" href="#/calendar?y=${pm[0]}&m=${pm[1]}">←</a><h2 style="margin:0">${MONTHS_LONG[m]} ${y}</h2><a class="btn" href="#/calendar?y=${nm[0]}&m=${nm[1]}">→</a></div>
-        <div class="cal">${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => `<div class="dow">${d}</div>`).join("")}${cells.join("")}</div></div>
+    const up = upcoming(fn), past = shown.filter((e) => e.until < today);
+    const q = (extra) => `#/calendar?y=${extra.y != null ? extra.y : y}&m=${extra.m != null ? extra.m : m}&f=${extra.f || f}`;
+    return `<div class="page-head"><div class="eyebrow">${esc(COURSE.term || "")}${COURSE.section ? " · Section " + esc(COURSE.section) : ""}</div><h1>Course calendar</h1>
+      <p>Exams, lab quizzes, WileyPlus deadlines and class topics from the course outline.</p></div>
+      ${COURSE.note ? `<div class="callout warn">${esc(COURSE.note)}</div>` : ""}
+      <div class="practice-controls"><div class="seg">${FILTERS.map(([k, l]) => `<a href="${q({ f: k })}" class="${f === k ? "on" : ""}">${l}</a>`).join("")}</div></div>
+      <div class="card"><div class="cal-head"><a class="btn" href="${q({ y: pm[0], m: pm[1] })}" aria-label="Previous month">←</a><h2 style="margin:0">${MONTHS_LONG[m]} ${y}</h2><a class="btn" href="${q({ y: nm[0], m: nm[1] })}" aria-label="Next month">→</a></div>
+        <div class="cal">${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => `<div class="dow">${d}</div>`).join("")}${cells.join("")}</div>
+        <div class="legend"><span class="ev exam">Exam</span><span class="ev quiz">Lab quiz</span><span class="ev assignment">Homework due</span><span class="ev class">Class</span><span class="ev break">No class</span></div></div>
       <div class="section-title"><h2>Upcoming</h2></div>
-      ${up.length ? `<div class="event-list">${up.map(eventRow).join("")}</div>` : `<div class="card empty"><h3>Nothing scheduled yet</h3><p>Dates will show here once the course outline is added.</p></div>`}
-      ${past.length ? `<div class="section-title"><h2>Past</h2></div><div class="event-list" style="opacity:.6">${past.reverse().map(eventRow).join("")}</div>` : ""}`;
+      ${up.length ? `<div class="event-list">${up.map(eventRow).join("")}</div>` : `<div class="card empty"><h3>Nothing upcoming</h3></div>`}
+      ${past.length ? `<details class="note" style="margin-top:20px"><summary>Past (${past.length})</summary><div class="body"><div class="event-list" style="opacity:.7">${past.slice().reverse().map(eventRow).join("")}</div></div></details>` : ""}`;
+  }
+
+  /* ---------- grades ---------- */
+  function viewGrades() {
+    const g = COURSE.grading || [];
+    const saved = store.get("grades", {});
+    return `<div class="page-head"><div class="eyebrow">Grades</div><h1>Grade calculator</h1>
+      <p>Enter the marks you have so far (as %) to see your running grade and what you need on the rest. Saved in this browser only.</p></div>
+      <div class="dash-top">
+        <div class="card"><div class="table-wrap"><table class="grades"><thead><tr><th>Assessment</th><th>Weight</th><th>Your %</th></tr></thead><tbody>
+          ${g.map((x) => `<tr><td><b>${esc(x.item)}</b><br><span class="muted">${esc(x.where)} · ${esc(x.note || "")}</span></td><td>${x.weight}%</td>
+            <td><input type="number" min="0" max="100" step="0.1" inputmode="decimal" data-grade="${x.id}" value="${saved[x.id] != null ? saved[x.id] : ""}" placeholder="—" aria-label="${esc(x.item)} percent"></td></tr>`).join("")}
+          </tbody></table></div></div>
+        <div class="card"><div class="eyebrow">Result</div><div id="gradeOut"></div>
+          <label class="muted" for="target">Target grade</label>
+          <select id="target">${(COURSE.letterGrades || []).filter((l) => l[1] > 0).map((l) => `<option value="${l[1]}" ${String(store.get("gradeTarget", 75)) === String(l[1]) ? "selected" : ""}>${l[0]} (${l[1]}%+)</option>`).join("")}</select>
+          <div id="needOut" style="margin-top:12px"></div></div>
+      </div>
+      <div class="section-title"><h2>Letter grade scale</h2></div>
+      <div class="card"><div class="scale">${(COURSE.letterGrades || []).map((l, i, a) => `<div><b>${l[0]}</b><span>${l[1]}${i ? "–" + (a[i - 1][1] - 0.01).toFixed(2) : "–100"}%</span></div>`).join("")}</div></div>`;
+  }
+  function updateGrades() {
+    const g = COURSE.grading || [];
+    const saved = {};
+    let earned = 0, done = 0;
+    g.forEach((x) => {
+      const inp = app.querySelector(`[data-grade="${x.id}"]`); if (!inp) return;
+      const v = inp.value === "" ? null : Math.max(0, Math.min(100, +inp.value));
+      if (v != null && !isNaN(v)) { saved[x.id] = v; earned += (x.weight * v) / 100; done += x.weight; }
+    });
+    store.set("grades", saved);
+    const target = +(app.querySelector("#target") || {}).value || 75;
+    store.set("gradeTarget", target);
+    const letter = (pct) => ((COURSE.letterGrades || []).find((l) => pct >= l[1]) || ["—"])[0];
+    const out = app.querySelector("#gradeOut"), need = app.querySelector("#needOut");
+    if (!out) return;
+    if (!done) { out.innerHTML = `<p class="muted">Enter at least one mark.</p>`; need.innerHTML = ""; return; }
+    const cur = (earned / done) * 100;
+    out.innerHTML = `<div class="countdown"><span class="big">${cur.toFixed(1)}%</span><span class="unit">${letter(cur)} so far on ${done}% of the course</span></div>
+      <p class="muted">${earned.toFixed(1)} of 100 points banked.</p>`;
+    const remaining = 100 - done;
+    if (!remaining) { need.innerHTML = `<p>Final grade: <b>${earned.toFixed(1)}% (${letter(earned)})</b></p>`; return; }
+    const req = ((target - earned) / remaining) * 100;
+    need.innerHTML = req <= 0 ? `<div class="callout tip">You’ve already locked in ${target}%+. 🎉</div>`
+      : req > 100 ? `<div class="callout warn">You’d need ${req.toFixed(1)}% on the remaining ${remaining}%, which isn’t possible. Try a lower target.</div>`
+      : `<div class="callout">You need an average of <b>${req.toFixed(1)}%</b> on the remaining <b>${remaining}%</b> of the course.</div>`;
+  }
+
+  /* ---------- course info ---------- */
+  function viewCourse() {
+    const today = startOfToday();
+    return `<div class="page-head"><div class="eyebrow">${esc(COURSE.term || "")}${COURSE.section ? " · Section " + esc(COURSE.section) : ""}</div><h1>Course info & roadmap</h1>
+      <p>Everything from the course outline in one place.</p></div>
+      <div class="two-col">
+        <div class="card"><h3>Class</h3><dl class="facts">
+          <dt>Instructor</dt><dd>${esc(COURSE.instructor || "")}</dd>
+          <dt>Office</dt><dd>${esc(COURSE.office || "")}</dd>
+          <dt>Office hours</dt><dd>${esc(COURSE.officeHours || "")}</dd>
+          <dt>Classes</dt><dd>${esc(COURSE.classTimes || "")} · ${esc(COURSE.location || "")}</dd>
+          <dt>Textbook</dt><dd>${esc(COURSE.textbook || "")}</dd></dl>
+          <p class="muted">Contact details and full policies are in the course outline on Meskanas.</p></div>
+        <div class="card"><h3>Grade breakdown</h3>
+          <div class="weights">${(COURSE.grading || []).map((x) => `<div class="w-row"><span>${esc(x.item)}</span><b>${x.weight}%</b><div class="w-bar"><span style="width:${x.weight / 30 * 100}%"></span></div></div>`).join("")}</div>
+          <div class="btn-row" style="margin-top:12px"><a class="btn" href="#/grades">Grade calculator</a></div></div>
+      </div>
+      ${(COURSE.rules || []).length ? `<div class="card"><h3>Good to know</h3><ul>${COURSE.rules.map((r) => `<li>${esc(r)}</li>`).join("")}</ul></div>` : ""}
+      <div class="section-title"><h2>Chapter roadmap</h2><span class="muted">In teaching order</span></div>
+      <div class="table-wrap"><table class="roadmap"><thead><tr><th>Chapter</th><th>Class dates</th><th>WileyPlus due</th><th>Tested on</th><th>Notes</th></tr></thead><tbody>
+        ${ROADMAP.map((r) => {
+          const doneTaught = r.taught && r.taught.length && ymd(r.taught[r.taught.length - 1]) < today;
+          return `<tr class="${doneTaught ? "done" : ""}"><td><b>Ch ${r.number}</b> ${esc(r.title)}${r.note ? `<br><span class="muted">${esc(r.note)}</span>` : ""}</td>
+          <td>${(r.taught || []).map((d) => fmtDay(ymd(d), { month: "short", day: "numeric" })).join(", ")}</td>
+          <td>${r.homework ? fmtDay(ymd(r.homework), { month: "short", day: "numeric" }) : ""}</td>
+          <td>${esc(r.exam || "")}${r.lab ? `<br><span class="muted">${esc(r.lab)}</span>` : ""}</td>
+          <td>${r.content ? `<a href="#/chapter/${r.content.id}">Open →</a>` : `<span class="muted">Coming soon</span>`}</td></tr>`; }).join("")}
+      </tbody></table></div>
+      ${(COURSE.labs || []).length ? `<div class="section-title"><h2>Lab schedule</h2></div><div class="table-wrap"><table><tbody>${COURSE.labs.map((l) => `<tr><td style="white-space:nowrap"><b>${esc(l[0])}</b></td><td>${esc(l[1])}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
   }
 
   /* ---------- search ---------- */
@@ -470,6 +719,7 @@
       (c.examples || []).forEach((e) => idx.push({ c, where: "Example", title: e.title, text: strip(e.prompt), href: `#/chapter/${c.id}/examples` }));
       (c.flashcards || []).forEach((f) => idx.push({ c, where: "Flashcard", title: f.q, text: f.a, href: `#/practice?mode=cards&ch=${c.id}` }));
     });
+    EXAMS.forEach((x) => x.problems.forEach((p) => idx.push({ c: { number: x.title.replace(" Exam", "") }, where: "Mock exam", title: p.title, text: strip(p.prompt), href: `#/exam/${x.id}#mock` })));
     return idx;
   }
   let INDEX;
@@ -477,14 +727,15 @@
     INDEX = INDEX || buildIndex();
     const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
     const hits = terms.length ? INDEX.filter((h) => terms.every((t) => (h.title + " " + h.text).toLowerCase().includes(t))) : [];
-    const hl = (s) => { let out = esc(s); terms.forEach((t) => { out = out.replace(new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi"), "<mark>$1</mark>"); }); return out; };
+    const hl = (s) => { let out = esc(s); terms.forEach((t) => { out = out.replace(new RegExp("(" + esc(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi"), "<mark>$1</mark>"); }); return out; };
     const snippet = (text) => {
       const low = text.toLowerCase(), at = terms.length ? Math.max(0, low.indexOf(terms[0]) - 60) : 0;
       return (at > 0 ? "…" : "") + text.slice(at, at + 200) + (text.length > at + 200 ? "…" : "");
     };
+    const label = (h) => typeof h.c.number === "number" ? chLabel(h.c) : h.c.number;
     return `<div class="page-head"><div class="eyebrow">Search</div><h1>${hits.length} result${hits.length === 1 ? "" : "s"} for “${esc(q)}”</h1></div>
-      <div class="grid">${hits.map((h) => `<a class="card search-hit" href="${h.href}"><span class="tag">${chLabel(h.c)} · ${h.where}</span>
-        <h3 style="margin:6px 0 0">${hl(h.title)}</h3><p>${hl(snippet(h.text))}</p></a>`).join("") || `<p class="muted">Try a different word — e.g. “depreciation”, “FOB”, “trial balance”.</p>`}</div>`;
+      <div class="grid">${hits.map((h) => `<a class="card search-hit" href="${h.href}"><span class="tag">${esc(label(h))} · ${h.where}</span>
+        <h3 style="margin:6px 0 0">${hl(h.title)}</h3><p>${hl(snippet(h.text))}</p></a>`).join("") || `<p class="muted">Try a different word, like “depreciation”, “FOB” or “trial balance”.</p>`}</div>`;
   }
 
   function viewNotFound() { return `<div class="empty"><h2>Page not found</h2><p><a href="#/">Back to the dashboard</a></p></div>`; }
@@ -492,17 +743,21 @@
   /* ---------- router ---------- */
   function route() {
     const raw = location.hash.replace(/^#\/?/, "");
-    const [path, qs] = raw.split("?");
+    const [pathAndAnchor, qs] = raw.split("?");
+    const [path, anchor] = pathAndAnchor.split("#");
     const query = new URLSearchParams(qs || "");
     const parts = path.split("/").filter(Boolean);
     let html;
     switch (parts[0]) {
       case undefined: html = viewHome(); break;
-      case "overview": html = viewOverview(); break;
+      case "overview": html = viewOverview(query); break;
       case "notes": html = viewNotesIndex(); break;
       case "chapter": html = viewChapter(parts[1], parts[2]); break;
+      case "exam": html = viewExam(parts[1]); break;
       case "practice": html = viewPractice(query); break;
       case "calendar": html = viewCalendar(query); break;
+      case "grades": html = viewGrades(); break;
+      case "course": html = viewCourse(); break;
       case "search": html = viewSearch(decodeURIComponent(parts.slice(1).join("/"))); break;
       default: html = viewNotFound();
     }
@@ -521,10 +776,12 @@
         pm.outerHTML = `<div class="practice-controls"><div class="seg">${[["cards", "Flashcards"], ["quiz", "Quiz"]].map(([k, l], i) => `<button data-cmode="${k}" class="${i === 0 ? "on" : ""}">${l}</button>`).join("")}</div></div><div id="practiceMount"></div>`;
         mountPractice(document.getElementById("practiceMount"), "cards", parts[1]);
       } else {
-        mountPractice(pm, query.get("mode") || "drill", query.get("ch") || "all");
+        mountPractice(pm, query.get("mode") || "drill", query.get("exam") ? "exam:" + query.get("exam") : query.get("ch") || "all");
       }
     }
-    if (!/^search/.test(raw)) window.scrollTo(0, 0);
+    if (parts[0] === "grades") updateGrades();
+    const target = anchor && document.getElementById(anchor);
+    if (target) target.scrollIntoView(); else if (!/^search/.test(raw)) window.scrollTo(0, 0);
     const h1 = app.querySelector("h1");
     document.title = (h1 && parts.length ? h1.textContent + " · " : "") + "ACCT 212 Study Guide";
   }
@@ -535,7 +792,8 @@
     if (!t) return;
     if (t.dataset.mode) {
       const sel = document.getElementById("chSel");
-      location.hash = `#/practice?mode=${t.dataset.mode}${sel && sel.value !== "all" ? "&ch=" + sel.value : ""}`;
+      const v = sel ? sel.value : "all";
+      location.hash = `#/practice?mode=${t.dataset.mode}${v.startsWith("exam:") ? "&exam=" + v.slice(5) : v !== "all" ? "&ch=" + v : ""}`;
       return;
     }
     if (t.dataset.cmode) {
@@ -551,9 +809,18 @@
   app.addEventListener("change", (e) => {
     if (e.target.id === "chSel") {
       const mode = (location.hash.match(/mode=(\w+)/) || [])[1] || "cards";
-      location.hash = `#/practice?mode=${mode}${e.target.value !== "all" ? "&ch=" + e.target.value : ""}`;
+      const v = e.target.value;
+      location.hash = `#/practice?mode=${mode}${v.startsWith("exam:") ? "&exam=" + v.slice(5) : v !== "all" ? "&ch=" + v : ""}`;
     }
+    if (e.target.dataset.check) {
+      const [id, i] = e.target.dataset.check.split(":");
+      const c = checks(); c[id] = c[id] || []; c[id][+i] = e.target.checked; store.set("checks", c);
+      // refresh readiness rings in place
+      const y = window.scrollY; route(); window.scrollTo(0, y);
+    }
+    if (e.target.id === "target") updateGrades();
   });
+  app.addEventListener("input", (e) => { if (e.target.dataset.grade != null) updateGrades(); });
   document.getElementById("searchForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const q = document.getElementById("searchInput").value.trim();

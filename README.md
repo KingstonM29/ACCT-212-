@@ -5,24 +5,37 @@ Textbook: Kimmel et al., *Financial Accounting: Tools for Business Decision-Maki
 
 **What's inside**
 
-- **Dashboard**: countdown to the next exam, your progress, and upcoming dates
+- **Dashboard**: countdown to the next exam, a day-by-day study plan, readiness, the next 7 days and upcoming deadlines
+- **Exam prep**: one page per exam with the format, a chapter "can you do this?" checklist, exam tips and a full **mock Midterm 1** (journalize → trial balance → adjusting entries → statements → closing) with solutions
 - **Overall notes**: the whole course on one printable page (equation, debit/credit rules, accounting cycle, adjusting-entry cheat sheet, formulas, and every chapter's key points)
 - **Chapter notes**: each chapter has a *Quick summary*, *Full notes*, *Worked examples* (with solutions you reveal when ready) and *Practice*
 - **Practice**: a debit/credit drill, flashcards and multiple-choice quizzes with explanations
-- **Calendar**: exams and due dates from the course outline
+- **Calendar**: every exam, lab quiz, WileyPlus deadline and class topic from the Fall 2026 outline (section SB04)
+- **Grade calculator**: enter your marks and see what you need on the rest of the course
+- **Course info**: instructor, office hours, grade weights, chapter roadmap and lab schedule
 - **Search** across all notes
 
 Progress and quiz scores are saved in your own browser only. Nothing is uploaded.
 
-## Chapters so far (Midterm 1, in class order)
+## Exams (Fall 2026, section SB04)
 
-| Class | Chapter | Topic |
-|---|---|---|
-| 1 | Ch 1 | The Purpose and Use of Financial Statements |
-| 2 | Ch 3 | The Accounting Information System *(taught before Ch 2)* |
-| 3 | Ch 2 | A Further Look at Financial Statements |
-| 4 | Ch 4 | Accrual Accounting Concepts |
-| 5 | Ch 5 | Merchandising Operations |
+| Exam | Date | Covers | Weight |
+|---|---|---|---|
+| Midterm 1 | Thu Oct 1, in class | Ch 1–4 | 25% |
+| Midterm 2 | Tue Oct 27, in class | Ch 5–8 | 25% |
+| Final | Dec 9–18 (Registrar sets date) | Cumulative, emphasis Ch 9–11, 13–14 | 30% |
+
+## Chapters with notes so far (in class order)
+
+| Class | Chapter | Topic | Exam |
+|---|---|---|---|
+| 1 | Ch 1 | The Purpose and Use of Financial Statements | Midterm 1 |
+| 2 | Ch 3 | The Accounting Information System *(taught before Ch 2)* | Midterm 1 |
+| 3 | Ch 2 | A Further Look at Financial Statements | Midterm 1 |
+| 4 | Ch 4 | Accrual Accounting Concepts | Midterm 1 |
+| 5 | Ch 5 | Merchandising Operations | Midterm 2 |
+
+Chapters 6–11, 13 and 14 already appear on the roadmap and turn into full chapter pages as soon as their notes are added.
 
 ## Use it online (GitHub Pages)
 
@@ -40,14 +53,15 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 
 ## Adding content
 
-All content lives in two files. You don't need to touch the app code.
+All content lives in the `data/` folder. You don't need to touch the app code.
 
 - **`data/chapters.js`**: one object per chapter. To add a chapter, copy an existing one, give it a new `id`
   and set `order` to the class it's taught in. The comment at the top of the file explains every field
   (summary bullets, key terms, notes sections, worked examples with journal entries, flashcards and quiz questions).
   Journal entries are written as `[account, debit, credit]`, and the site formats them and checks totals for you.
-- **`data/calendar.js`**: add exams, quizzes and due dates from the course outline. Exams automatically get a countdown
-  on the dashboard. Set `outlineLoaded: true` once the dates are in.
+- **`data/calendar.js`**: course info, grade weights, the chapter roadmap (teaching order, class dates, homework, which exam)
+  and every dated event. Exams automatically get a countdown and study plan on the dashboard.
+- **`data/exams.js`**: exam-prep pages: format, tips and mock-exam problems for each exam.
 
 ## Disclaimer
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ACCT 212 Study Guide</title>
-  <meta name="description" content="Free, student-made study guide for ACCT 212 (Financial Accounting) at MacEwan University — notes, summaries, worked examples, practice and exam calendar.">
+  <meta name="description" content="Free, student-made study guide for ACCT 212 (Financial Accounting) at MacEwan University — notes, summaries, worked examples, a mock midterm, practice, a grade calculator and the exam calendar.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -25,11 +25,14 @@
     </form>
     <nav id="nav">
       <a href="#/" data-route="home">Dashboard</a>
+      <a href="#/calendar" data-route="exam" id="navExam">Exam prep</a>
       <a href="#/overview" data-route="overview">Overall notes</a>
       <a href="#/notes" data-route="notes">Chapter notes</a>
       <div class="nav-chapters" id="navChapters"></div>
       <a href="#/practice" data-route="practice">Practice</a>
       <a href="#/calendar" data-route="calendar">Calendar</a>
+      <a href="#/grades" data-route="grades">Grade calculator</a>
+      <a href="#/course" data-route="course">Course info</a>
     </nav>
     <div class="sidebar-foot">
       <button class="link-btn" id="themeBtn">Toggle dark mode</button>
@@ -42,6 +45,7 @@
 
   <script src="data/calendar.js"></script>
   <script src="data/chapters.js"></script>
+  <script src="data/exams.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>

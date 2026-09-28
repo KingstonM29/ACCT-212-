@@ -352,3 +352,74 @@ mark { background: var(--warn-soft); color: inherit; border-radius: 3px; padding
   main { margin: 0; padding: 0; }
   details.note { break-inside: avoid; }
 }
+
+/* ---------- v2: outline-driven dashboard ---------- */
+.hero { border-top: 4px solid var(--cr); }
+.chip.off { background: var(--surface-2); color: var(--muted); }
+.seg a { text-decoration: none; padding: 7px 12px; border-radius: 8px; font-size: .88rem; font-weight: 500; color: var(--muted); }
+.seg a.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.dash-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .dash-two { grid-template-columns: 1fr; } }
+.agenda { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.agenda-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.agenda-row:last-child { border-bottom: 0; }
+.agenda-date { text-align: center; line-height: 1.1; }
+.agenda-date b { display: block; font-size: 1.15rem; }
+.agenda-date span { font-size: .7rem; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.agenda-title { font-weight: 600; font-size: .93rem; }
+.agenda-title a { color: inherit; }
+.agenda-row .muted { font-size: .8rem; }
+.agenda-row.exam .agenda-date { color: var(--cr); }
+.agenda-row.break { opacity: .65; }
+.tag.quiz, .tag.assignment { background: var(--dr-soft); color: var(--dr); }
+.tag.class { background: var(--accent-soft); color: var(--accent); }
+
+.card + .dash-two, .dash-top + .card { margin-top: 16px; }
+ol.plan { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 10px; }
+ol.plan > li { display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 12px; border-radius: 10px; background: var(--surface-2); margin: 0; }
+ol.plan > li.now { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.plan-day { text-align: center; line-height: 1.2; }
+.plan-day b { display: block; }
+.plan-day span { font-size: .78rem; color: var(--muted); }
+ol.plan h4 { margin: 0 0 4px; }
+ol.plan ul { margin: 0; font-size: .9rem; }
+
+ul.checklist { list-style: none; padding: 0; margin: 0; }
+ul.checklist li { margin: 0; border-bottom: 1px solid var(--border); }
+ul.checklist li:last-child { border-bottom: 0; }
+ul.checklist label { display: flex; gap: 10px; align-items: flex-start; padding: 8px 2px; cursor: pointer; font-size: .92rem; }
+ul.checklist input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+ul.checklist input:checked + span { color: var(--muted); text-decoration: line-through; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .86rem; color: var(--muted); margin-bottom: 12px; }
+.ch-card.soon, .card.soon { background: transparent; border-style: dashed; box-shadow: none; }
+.ch-card.soon:hover { transform: none; border-color: var(--border); }
+ul.tips li { margin: .45em 0; }
+.grid > .card + .card { margin-top: 0; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.legend .ev { font-size: .72rem; padding: 2px 8px; border-radius: 4px; }
+.cal .ev.class, .legend .ev.class { background: var(--accent-soft); color: var(--accent); }
+.cal .ev.break, .legend .ev.break { background: var(--surface-2); color: var(--muted); font-style: italic; }
+.legend .ev.exam { background: var(--cr-soft); color: var(--cr); font-weight: 600; }
+.legend .ev.quiz, .legend .ev.assignment { background: var(--dr-soft); color: var(--dr); }
+.cal .ev.quiz { background: var(--warn-soft); color: var(--warn); }
+.legend .ev.quiz { background: var(--warn-soft); color: var(--warn); }
+.event.quiz .date-box { background: var(--warn-soft); color: var(--warn); }
+.event.break { opacity: .7; }
+
+table.grades input { width: 90px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; }
+table.grades td { vertical-align: middle; }
+.scale { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.scale div { background: var(--surface-2); border-radius: 8px; padding: 8px 10px; }
+.scale b { display: block; font-size: 1.1rem; }
+.scale span { font-size: .78rem; color: var(--muted); font-family: var(--mono); }
+dl.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0 0 10px; font-size: .92rem; }
+dl.facts dt { color: var(--muted); font-weight: 500; }
+dl.facts dd { margin: 0; }
+.weights { display: grid; gap: 10px; }
+.w-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: .9rem; }
+.w-bar { grid-column: 1 / -1; height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.w-bar span { display: block; height: 100%; background: var(--accent); }
+table.roadmap tr.done td { color: var(--muted); }
+@media (max-width: 640px) { ol.plan > li { grid-template-columns: 1fr; gap: 4px; } .plan-day { text-align: left; } .plan-day b { display: inline; margin-right: 6px; } }
+@media print { .hero { border-top: 0; } }
