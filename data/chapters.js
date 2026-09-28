@@ -604,6 +604,8 @@ window.CHAPTERS = [
       "Identify the five types of adjusting entries",
       "Journalize prepaid, depreciation, unearned, accrued expense and accrued revenue adjustments",
       "Calculate income tax expense after all other adjustments",
+      "Calculate partial-year depreciation and interest accruals (× months ÷ 12)",
+      "Work backward through a T-account to find a missing amount",
       "Prepare an adjusted trial balance",
       "Prepare closing entries and a post-closing trial balance",
       "Compare IFRS 5-step revenue recognition with ASPE"
@@ -612,7 +614,10 @@ window.CHAPTERS = [
       "Adjusting entries are made at the <b>end of every period</b> so revenues and expenses land in the right period and assets/liabilities are stated correctly.",
       "Five types: <b>prepaid expenses, depreciation (amortization), unearned revenues, accrued expenses, accrued revenues</b>.",
       "Every adjusting entry hits <b>one balance-sheet account and one income-statement account</b> — and <b>never Cash</b>.",
-      "Straight-line depreciation = <b>(Cost − Residual value) ÷ Useful life</b>, credited to Accumulated Depreciation.",
+      "Straight-line depreciation = <b>(Cost − Residual value) ÷ Useful life</b>, credited to Accumulated Depreciation. Partial year: × months used ÷ 12.",
+      "Interest = <b>Principal × Rate × Time</b>. It accrues with the passage of time, before any cash moves.",
+      "Collecting a receivable is <b>Dr Cash / Cr A/R</b>, never revenue again. Deferred revenue is a liability until earned.",
+      "Missing numbers? Use the T-account: <b>Beginning + Additions − Used = Ending</b>, then solve for the unknown.",
       "Income tax expense is calculated <b>after</b> all other adjustments: adjusted income before tax × tax rate.",
       "<b>Dividends are not expenses</b> — they reduce retained earnings.",
       "<b>Permanent</b> accounts (balance sheet) carry forward. <b>Temporary</b> accounts (revenues, expenses, dividends) are closed to zero.",
@@ -620,6 +625,7 @@ window.CHAPTERS = [
       "<b>IFRS</b> revenue recognition uses a <b>5-step model</b>; <b>ASPE</b> recognizes revenue when performance is substantially complete, measurable and collection is reasonably certain."
     ],
     terms: [
+      { term: "Accrual accounting", def: "Revenue is recorded when earned and expenses when incurred, regardless of when cash changes hands." },
       { term: "Adjusting entry", def: "End-of-period entry that records revenues/expenses in the correct period and states assets/liabilities at the right amounts." },
       { term: "Prepaid expense", def: "Expense paid in cash before it is used up (asset first, then expensed as used). E.g. insurance, rent, supplies." },
       { term: "Unearned (deferred) revenue", def: "Cash received before the service is performed — a liability until earned." },
@@ -633,8 +639,9 @@ window.CHAPTERS = [
     ],
     sections: [
       {
-        title: "Why adjustments are needed",
+        title: "Accrual accounting & why adjustments are needed",
         html: `
+<div class="formula small">Accrual accounting: record revenue when it is <b>earned</b> and expenses when they are <b>incurred</b>, regardless of when cash changes hands.</div>
 <ul>
 <li>Adjusting entries are made at the <b>end of every accounting period</b> to report revenues and expenses in the proper period and assets and liabilities at appropriate amounts.</li>
 <li>Adjusting journal entries use the normal <b>debits = credits</b> format.</li>
@@ -657,6 +664,58 @@ window.CHAPTERS = [
 <div data-diagram="timing"></div>`
       },
       {
+        title: "Prepaid expenses in detail",
+        html: `
+<p>Payments for future benefits are first recorded as <b>assets</b>. As the benefit is used up, move the used portion to <b>expense</b>.</p>
+<p><b>Example:</b> pay $12,000 on July 1 for six months’ rent. Monthly expense = $12,000 ÷ 6 = <b>$2,000</b>.</p>
+<div class="table-wrap"><table class="je"><thead><tr><th>Date</th><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody>
+<tr class="first"><td class="date">Jul 1</td><td>Prepaid Rent</td><td class="num d">12,000</td><td class="num c"></td></tr>
+<tr><td></td><td class="credit-acct">Cash</td><td class="num d"></td><td class="num c">12,000</td></tr>
+<tr class="first"><td class="date">Jul 31</td><td>Rent Expense</td><td class="num d">2,000</td><td class="num c"></td></tr>
+<tr><td></td><td class="credit-acct">Prepaid Rent</td><td class="num d"></td><td class="num c">2,000</td></tr>
+</tbody></table></div>
+<h4>From the homework</h4>
+<ul class="calc">
+<li>Insurance: $2,340 ÷ 12 × 7 months = <b>$1,365</b> expense</li>
+<li>Rent: $6,700 ÷ 5 × 4 months = <b>$5,360</b> expense</li>
+<li>Prepaid cleaning, one month used: Dr Repairs and Maintenance Expense <b>$1,040</b> / Cr Prepaid Cleaning $1,040</li>
+</ul>
+<p class="muted">Pattern: (total prepaid ÷ months covered) × months used. The expense account doesn’t always share the prepaid’s name (prepaid cleaning → repairs and maintenance expense).</p>`
+      },
+      {
+        title: "Deferred (unearned) revenue in detail",
+        html: `
+<p>Cash received <b>before</b> the revenue is earned creates a <b>liability</b>. “Deferred revenue” and “unearned revenue” mean the same thing.</p>
+<div class="two-col">
+<div class="card-lite"><h4>When cash is received</h4><p>Dr Cash<br>&nbsp;&nbsp;&nbsp;&nbsp;Cr Deferred Revenue</p></div>
+<div class="card-lite"><h4>When the service is performed</h4><p>Dr Deferred Revenue<br>&nbsp;&nbsp;&nbsp;&nbsp;Cr Service Revenue (or the right revenue account)</p></div>
+</div>
+<h4>From the homework</h4>
+<ul class="calc">
+<li>$3,870 received for nine monthly sponsorships → $430/month × 4 months = <b>$1,720</b> earned</li>
+<li>$1,500 received, $530 still unearned at year end → $1,500 − $530 = <b>$970</b> revenue recognized</li>
+</ul>
+<p class="muted">Watch the wording: “still unearned” gives you the <i>ending liability</i>, so revenue = amount received − amount still unearned.</p>`
+      },
+      {
+        title: "Accrued revenue in detail",
+        html: `
+<p>Revenue has been <b>earned</b> but not yet recorded or collected.</p>
+<div class="two-col">
+<div class="card-lite"><h4>Adjusting entry</h4><p>Dr Accounts Receivable (or Interest Receivable)<br>&nbsp;&nbsp;&nbsp;&nbsp;Cr Service Revenue (or Interest Income)</p></div>
+<div class="card-lite"><h4>When the customer later pays</h4><p>Dr Cash<br>&nbsp;&nbsp;&nbsp;&nbsp;Cr Accounts Receivable</p></div>
+</div>
+<div class="callout warn"><b>Don’t record revenue twice.</b> Collecting an existing receivable is just one asset replacing another. The revenue was already recorded when it was earned.</div>
+<div class="callout tip"><b>Accrued vs deferred revenue:</b> before adjusting, <b>accrued</b> revenue is earned but <i>unrecorded</i> (no entry yet). <b>Deferred</b> revenue has already been recorded, as a <i>liability</i>, because the cash came first.</div>`
+      },
+      {
+        title: "Accrued expenses in detail",
+        html: `
+<p>Expenses have been <b>incurred</b> but not yet recorded or paid.</p>
+<div class="je-inline">Dr (the right) Expense / Cr (the matching) Payable &nbsp;·&nbsp; e.g. Dr Salaries Expense / Cr Salaries Payable</div>
+<p>Common examples: salaries earned by employees since the last payday, interest owed on a loan, utilities used but not billed. When the bill is later paid: Dr the Payable / Cr Cash. The expense is not recorded again.</p>`
+      },
+      {
         title: "Depreciation",
         html: `
 <ul>
@@ -665,7 +724,59 @@ window.CHAPTERS = [
 </ul>
 <div class="formula">Straight-line depreciation = (Cost − Residual value) ÷ Estimated useful life</div>
 <p>Entry: <b>Dr Depreciation Expense / Cr Accumulated Depreciation</b> (contra asset — the asset account itself is never credited).</p>
+<h4>Partial year</h4>
+<p>If the asset was used for only part of the year: <b>annual depreciation × months used ÷ 12</b>. The homework examples used no residual value.</p>
+<div class="table-wrap"><table><thead><tr><th>Homework example</th><th>Calculation</th><th>Depreciation</th></tr></thead><tbody>
+<tr><td>$40,000 equipment, 4-year life, bought July 1</td><td>$40,000 ÷ 4 × 6/12</td><td><b>$5,000</b></td></tr>
+<tr><td>$28,590 vehicle, 3-year life, full year</td><td>$28,590 ÷ 3</td><td><b>$9,530</b></td></tr>
+<tr><td>$14,050 equipment, 5-year life, bought July 1</td><td>$14,050 ÷ 5 × 6/12</td><td><b>$1,405</b></td></tr>
+</tbody></table></div>
+<h4>Annual expense vs accumulated depreciation</h4>
+<p>The vehicle above had <b>two years</b> of use at December 31, 2024:</p>
+<ul class="calc"><li>Depreciation expense for 2024 = $9,530 (one year only)</li><li>Accumulated depreciation = $9,530 × 2 = <b>$19,060</b></li><li>Carrying amount = $28,590 − $19,060 = <b>$9,530</b></li></ul>
+<p class="muted">Accumulated Depreciation is a contra-asset (permanent) account, so it is <b>not closed</b> at year end. Depreciation Expense is closed.</p>
 <div data-diagram="depreciation"></div>`
+      },
+      {
+        title: "Interest accruals",
+        html: `
+<div class="formula">Interest = Principal × Annual rate × Time (in years)</div>
+<p>Interest is earned (or incurred) with the <b>passage of time</b>, even before any cash is collected or paid.</p>
+<p><b>Homework example:</b> a bank lends $41,000 at 6% for 18 months.</p>
+<ul class="calc">
+<li>First six months: $41,000 × 6% × 6/12 = <b>$1,230</b></li>
+<li>Following twelve months: $41,000 × 6% × 12/12 = <b>$2,460</b></li>
+<li>Total interest: $1,230 + $2,460 = <b>$3,690</b></li>
+<li>Total collected at maturity: $41,000 + $3,690 = <b>$44,690</b></li>
+</ul>
+<div class="table-wrap"><table><thead><tr><th>On the lender’s books</th><th>Debit</th><th>Credit</th></tr></thead><tbody>
+<tr><td>Make the loan</td><td>Bank Loan Receivable</td><td>Cash</td></tr>
+<tr><td>Accrue interest (each year end)</td><td>Interest Receivable</td><td>Interest Income</td></tr>
+<tr><td>Collect at maturity</td><td>Cash</td><td>Bank Loan Receivable and Interest Receivable</td></tr>
+</tbody></table></div>
+<p class="muted">The borrower records the mirror image: Dr Interest Expense / Cr Interest Payable.</p>`
+      },
+      {
+        title: "Working backward with T-accounts",
+        html: `
+<p>Many homework questions give three of the four numbers in an account and ask for the missing one. Set up the T-account and solve.</p>
+<div class="two-col">
+<div class="card-lite"><h4>Assets (Supplies, Prepaid Insurance, A/R)</h4><p class="mono-line">Beginning + Additions − Amount used = Ending</p></div>
+<div class="card-lite"><h4>Liabilities (Deferred Revenue, Payables)</h4><p class="mono-line">Beginning + Increases − Reductions = Ending</p></div>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Find</th><th>Rearranged</th><th>Homework numbers</th></tr></thead><tbody>
+<tr><td>Supplies used</td><td>Beginning + Purchased − Ending</td><td>$3,200 + $7,600 − $2,600 = <b>$8,200</b></td></tr>
+<tr><td>Insurance purchased</td><td>Ending + Expense − Beginning</td><td>$19,200 + $22,000 − $16,100 = <b>$25,100</b></td></tr>
+<tr><td>Cash collected from customers</td><td>Beginning A/R + Sales on account − Ending A/R</td><td>$43,800 + $123,100 − $55,900 = <b>$111,000</b></td></tr>
+<tr><td>Deferred revenue earned</td><td>Beginning + Cash received − Ending</td><td>$20,100 + $31,500 − $16,300 = <b>$35,300</b></td></tr>
+<tr><td>Opening income tax payable</td><td>Ending − Accrued + Paid</td><td>$130 − $90 + $73 = <b>$113</b></td></tr>
+</tbody></table></div>
+<h4>Other backward calculations</h4>
+<ul class="calc">
+<li>Months of use: $3,000 accumulated depreciation ÷ $120 per month = <b>25 months</b></li>
+<li>Coverage left: $1,260 prepaid insurance ÷ $420 per month = <b>3 months</b></li>
+<li>Annual premium: $420 × 12 = <b>$5,040</b></li>
+</ul>`
       },
       {
         title: "Income tax expense",
@@ -689,15 +800,20 @@ window.CHAPTERS = [
       {
         title: "Adjusted trial balance",
         html: `
-<ul><li>Prepared <b>after</b> adjusting entries are journalized and posted.</li><li>Proves total debits = total credits after all adjustments.</li><li>Used to prepare the financial statements.</li></ul>`
+<ul><li>Prepared <b>after</b> adjusting entries are journalized and posted.</li><li>Proves total debits = total credits after all adjustments.</li><li>It is the <b>main source</b> for preparing the financial statements.</li></ul>
+<h4>From the adjusted trial balance to the statements</h4>
+<p>Prepare the <b>income statement first</b>: its net income is needed for the statement of changes in equity (retained earnings).</p>
+<div class="formula small">Net income = Revenues − Expenses &nbsp;·&nbsp; Ending RE = Beginning RE + Net income − Dividends</div>
+<ul class="calc"><li>Homework: revenue $134,100 − total expenses $97,300 = net income <b>$36,800</b></li>
+<li>Ending retained earnings = $47,800 + $36,800 − $5,300 = <b>$79,300</b></li></ul>`
       },
       {
         title: "Closing temporary accounts",
         html: `
 <ul>
 <li>The closing process is the last step of the accounting cycle.</li>
-<li><b>Permanent accounts</b> track results year to year — ending balances carry forward. All balance sheet accounts are permanent.</li>
-<li><b>Temporary accounts</b> track results for a limited time — zeroed at year end. Revenues, expenses and dividends declared are temporary.</li>
+<li><b>Permanent accounts</b> track results year to year: ending balances carry forward. All balance sheet accounts are permanent: assets (including contra accounts like Accumulated Depreciation), liabilities, and equity such as Common Shares and Retained Earnings.</li>
+<li><b>Temporary accounts</b> track results for a limited time and are reset to zero at year end: revenues, expenses, dividends declared and Income Summary itself.</li>
 </ul>
 <h4>The closing process</h4>
 <ol class="steps">
@@ -710,6 +826,20 @@ window.CHAPTERS = [
 <h4>Post-closing trial balance</h4>
 <p>Lists only <b>permanent</b> (balance sheet) accounts after closing, proving debits still equal credits going into the new period.</p>
 <div data-diagram="closing"></div>`
+      },
+      {
+        title: "Common mistakes to avoid",
+        html: `
+<div class="mistakes">
+<div><b>Expensing an entire prepayment</b><span>Only the portion that has expired becomes expense.</span></div>
+<div><b>Recording advance payments as revenue</b><span>Cash received before the work is done is a liability (deferred revenue).</span></div>
+<div><b>Recording revenue twice</b><span>Collecting Accounts Receivable is Dr Cash / Cr A/R. No revenue.</span></div>
+<div><b>Full-year depreciation on a mid-year purchase</b><span>Multiply by months used ÷ 12.</span></div>
+<div><b>Mixing up depreciation expense and accumulated depreciation</b><span>Expense = this year only. Accumulated = total to date.</span></div>
+<div><b>Closing permanent accounts</b><span>Never close assets, liabilities or Accumulated Depreciation.</span></div>
+<div><b>Treating dividends as an expense</b><span>Dividends reduce retained earnings directly and never appear on the income statement.</span></div>
+<div><b>Using Cash in an adjusting entry</b><span>Adjustments pair one income statement account with one balance sheet account.</span></div>
+</div>`
       },
       {
         title: "Revenue recognition — IFRS vs ASPE",
@@ -777,6 +907,50 @@ window.CHAPTERS = [
         ]
       },
       {
+        title: "Prepaid rent — six months",
+        prompt: "On July 1 a company pays $12,000 for six months’ rent. Record the payment and the July 31 adjusting entry. What is the Prepaid Rent balance at July 31?",
+        steps: [
+          { label: "Solution", html: "<p>$12,000 ÷ 6 months = <b>$2,000</b> per month.</p>", entries: [
+            { date: "Jul 1", memo: "Payment for future benefit → asset", lines: [["Prepaid Rent", 12000, null], ["Cash", null, 12000]] },
+            { date: "Jul 31", memo: "One month used", lines: [["Rent Expense", 2000, null], ["Prepaid Rent", null, 2000]] }
+          ], after: "Prepaid Rent at July 31 = 12,000 − 2,000 = $10,000 (five months left)." }
+        ]
+      },
+      {
+        title: "Partial-year depreciation & carrying amount",
+        prompt: "(a) $14,050 of equipment with a 5-year life and no residual is bought July 1. Depreciation for the year ending Dec 31? (b) A $28,590 vehicle has a 3-year life and no residual. At the end of its second full year, what are the year’s depreciation expense, the accumulated depreciation and the carrying amount?",
+        steps: [
+          { label: "Solution", html: `<ul class="calc"><li>(a) 14,050 ÷ 5 = 2,810 per year × 6/12 = <b>$1,405</b></li><li>(b) Depreciation expense for the year = 28,590 ÷ 3 = <b>$9,530</b></li><li>(b) Accumulated depreciation = 9,530 × 2 = <b>$19,060</b></li><li>(b) Carrying amount = 28,590 − 19,060 = <b>$9,530</b></li></ul><p class="muted">Classic trap: the year’s expense is one year; accumulated depreciation is every year so far.</p>`, entries: [
+            { date: "(a) Dec 31", lines: [["Depreciation Expense", 1405, null], ["Accumulated Depreciation — Equipment", null, 1405]] }
+          ]}
+        ]
+      },
+      {
+        title: "Interest on a bank loan (lender’s books)",
+        prompt: "A bank lends $41,000 at 6% for 18 months. Six months pass before the bank’s first year end. Record the loan, the interest accrual at the first year end, the accrual for the following twelve months, and the collection at maturity.",
+        steps: [
+          { label: "Solution", html: `<ul class="calc"><li>First 6 months: 41,000 × 6% × 6/12 = 1,230</li><li>Next 12 months: 41,000 × 6% × 12/12 = 2,460</li><li>Total interest 3,690 · Collected at maturity 44,690</li></ul>`, entries: [
+            { date: "Start", memo: "Make the loan", lines: [["Bank Loan Receivable", 41000, null], ["Cash", null, 41000]] },
+            { date: "Year end 1", memo: "6 months of interest earned", lines: [["Interest Receivable", 1230, null], ["Interest Income", null, 1230]] },
+            { date: "Year end 2", memo: "Next 12 months of interest earned", lines: [["Interest Receivable", 2460, null], ["Interest Income", null, 2460]] },
+            { date: "Maturity", memo: "Collect principal + all interest", lines: [["Cash", 44690, null], ["Bank Loan Receivable", null, 41000], ["Interest Receivable", null, 3690]] }
+          ]}
+        ]
+      },
+      {
+        title: "Working backward with T-accounts",
+        prompt: "(a) Supplies: beginning $3,200, purchases $7,600, ending $2,600. Supplies used? (b) Accounts Receivable: beginning $43,800, sales on account $123,100, ending $55,900. Cash collected? (c) Deferred revenue: beginning $20,100, cash received in advance $31,500, ending $16,300. Revenue earned? (d) Accumulated depreciation is $3,000 and monthly depreciation is $120. How many months has the asset been used?",
+        steps: [
+          { label: "Solution", html: `
+<div class="tgrid">
+<div class="tacc"><div class="tacc-h">Supplies</div><div class="tacc-b"><div class="tacc-l">Beg 3,200<br>7,600</div><div class="tacc-r"><b>8,200</b> used</div></div><div class="tacc-bal">End <b class="d">2,600 Dr</b></div></div>
+<div class="tacc"><div class="tacc-h">Accounts Receivable</div><div class="tacc-b"><div class="tacc-l">Beg 43,800<br>123,100</div><div class="tacc-r"><b>111,000</b> collected</div></div><div class="tacc-bal">End <b class="d">55,900 Dr</b></div></div>
+<div class="tacc"><div class="tacc-h">Deferred Revenue</div><div class="tacc-b"><div class="tacc-l"><b>35,300</b> earned</div><div class="tacc-r">Beg 20,100<br>31,500</div></div><div class="tacc-bal">End <b class="c">16,300 Cr</b></div></div>
+</div>
+<ul class="calc"><li>(a) 3,200 + 7,600 − 2,600 = <b>8,200</b></li><li>(b) 43,800 + 123,100 − 55,900 = <b>111,000</b></li><li>(c) 20,100 + 31,500 − 16,300 = <b>35,300</b></li><li>(d) 3,000 ÷ 120 = <b>25 months</b></li></ul>` }
+        ]
+      },
+      {
         title: "Closing entries — Lynk Software Services",
         prompt: "Using Lynk Software Services’ adjusted trial balance at October 31, 2017 (a proprietorship owned by T. Jacobs), prepare the closing entries.",
         steps: [
@@ -811,7 +985,12 @@ window.CHAPTERS = [
       { q: "When is income tax expense calculated?", a: "After all other adjustments — adjusted income before tax × tax rate." },
       { q: "Which accounts are temporary?", a: "Revenues, expenses, dividends (drawings) — plus Income Summary." },
       { q: "4 closing steps?", a: "Close revenues → close expenses → close Income Summary to RE → close dividends to RE" },
-      { q: "What appears on a post-closing trial balance?", a: "Only permanent (balance sheet) accounts." }
+      { q: "What appears on a post-closing trial balance?", a: "Only permanent (balance sheet) accounts." },
+      { q: "Partial-year depreciation formula?", a: "(Cost − Residual) ÷ Life × months used ÷ 12" },
+      { q: "Interest formula?", a: "Principal × Annual rate × Time in years" },
+      { q: "Customer pays an invoice you already recorded. Entry?", a: "Dr Cash / Cr Accounts Receivable. No revenue, because it was recorded when earned." },
+      { q: "Supplies used, working backward?", a: "Beginning supplies + Purchases − Ending supplies" },
+      { q: "Is Accumulated Depreciation closed at year end?", a: "No. It’s a permanent contra-asset account. Only Depreciation Expense is closed." }
     ],
     quiz: [
       { q: "If an accrued expense is NOT recorded, then…", options: ["Net income is understated", "Liabilities are overstated", "Net income is overstated and liabilities understated", "Assets are overstated"], answer: 2, why: "Missing expense → income too high; missing payable → liabilities too low." },
@@ -823,7 +1002,13 @@ window.CHAPTERS = [
       { q: "$3,600 received on Nov 1 for 6 months of service, credited to Unearned Revenue. Dec 31 adjustment?", options: ["Dr Unearned Revenue 1,200 / Cr Revenue 1,200", "Dr Revenue 1,200 / Cr Unearned Revenue 1,200", "Dr Unearned Revenue 2,400 / Cr Revenue 2,400", "Dr Cash 1,200 / Cr Revenue 1,200"], answer: 0, why: "3,600 ÷ 6 = 600/month × 2 months (Nov, Dec) = 1,200 earned." },
       { q: "A $10,000, 6% note was signed Oct 1. Accrued interest at Dec 31?", options: ["$600", "$150", "$50", "$450"], answer: 1, why: "10,000 × 6% × 3/12 = 150." },
       { q: "Which adjustment decreases net income AND increases liabilities?", options: ["Accrued revenue", "Unearned revenue earned", "Accrued expense", "Prepaid expense used"], answer: 2, why: "Dr Expense / Cr Payable." },
-      { q: "Adjusted income before tax is $50,000 and the tax rate is 25%. Net income?", options: ["$50,000", "$12,500", "$37,500", "$62,500"], answer: 2, why: "Tax = 12,500; 50,000 − 12,500 = 37,500." }
+      { q: "Adjusted income before tax is $50,000 and the tax rate is 25%. Net income?", options: ["$50,000", "$12,500", "$37,500", "$62,500"], answer: 2, why: "Tax = 12,500; 50,000 − 12,500 = 37,500." },
+      { q: "$40,000 equipment, 4-year life, no residual, purchased July 1. Depreciation for the year ending Dec 31?", options: ["$10,000", "$5,000", "$20,000", "$3,333"], answer: 1, why: "40,000 ÷ 4 = 10,000 per year × 6/12 = 5,000." },
+      { q: "A customer pays $800 on an invoice billed last month. The entry is:", options: ["Dr Cash / Cr Service Revenue", "Dr Cash / Cr Accounts Receivable", "Dr Accounts Receivable / Cr Cash", "Dr Cash / Cr Deferred Revenue"], answer: 1, why: "The revenue was recorded when billed. Collecting it just swaps A/R for Cash." },
+      { q: "$1,500 was received in advance; at year end $530 is still unearned. Revenue to recognize?", options: ["$1,500", "$530", "$970", "$2,030"], answer: 2, why: "1,500 − 530 = 970 has been earned." },
+      { q: "Supplies: beginning $3,200, purchased $7,600, ending count $2,600. Supplies expense?", options: ["$8,200", "$13,400", "$7,000", "$2,600"], answer: 0, why: "3,200 + 7,600 − 2,600 = 8,200 used." },
+      { q: "A $41,000, 6% loan is outstanding for 6 months at year end. Accrued interest?", options: ["$2,460", "$1,230", "$3,690", "$205"], answer: 1, why: "41,000 × 6% × 6/12 = 1,230." },
+      { q: "A vehicle cost $28,590 with a 3-year life and no residual. After 2 full years, its carrying amount is…", options: ["$19,060", "$9,530", "$28,590", "$14,295"], answer: 1, why: "Accumulated depreciation = 9,530 × 2 = 19,060. Carrying amount = 28,590 − 19,060 = 9,530." }
     ]
   },
 

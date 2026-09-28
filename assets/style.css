@@ -798,3 +798,10 @@ details.given { margin: 10px 0; }
 .mock-cta:hover { border-color: var(--accent); }
 ul.checklist.topics li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 12px; }
 .topic-links { display: flex; gap: 10px; font-size: .8rem; padding-bottom: 6px; }
+
+/* ch 4 additions */
+.mistakes { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.mistakes div { background: var(--bad-soft); border-left: 3px solid var(--bad); border-radius: 8px; padding: 10px 12px; font-size: .9rem; }
+.mistakes b { display: block; margin-bottom: 2px; }
+.mistakes span { color: var(--muted); font-size: .85rem; }
+.mono-line { font-family: var(--mono); font-size: .85rem; }

@@ -488,7 +488,9 @@
         <div class="table-wrap"><table><tbody>
         <tr><td>Straight-line depreciation</td><td>(Cost − Residual value) ÷ Useful life</td></tr>
         <tr><td>Carrying amount</td><td>Cost − Accumulated depreciation</td></tr>
+        <tr><td>Partial-year depreciation</td><td>Annual depreciation × Months used ÷ 12</td></tr>
         <tr><td>Interest</td><td>Principal × Annual rate × Time (months ÷ 12)</td></tr>
+        <tr><td>Working backward (T-account)</td><td>Beginning + Additions − Used/Reductions = Ending</td></tr>
         <tr><td>Working capital</td><td>Current assets − Current liabilities</td></tr>
         <tr><td>Current ratio</td><td>Current assets ÷ Current liabilities</td></tr>
         <tr><td>Debt to total assets</td><td>Total liabilities ÷ Total assets</td></tr>
