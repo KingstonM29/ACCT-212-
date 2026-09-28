@@ -103,7 +103,8 @@ window.CHAPTERS = [
 <tr><td>Balance Sheet</td><td>Financial position at a <b>point in time</b>.</td><td>Cash, receivables, supplies, equipment, payables, notes payable, share capital, retained earnings</td></tr>
 <tr><td>Statement of Cash Flows</td><td>Activities that increased and decreased cash during the period.</td><td>Cash from customers, cash paid to suppliers, equipment purchased, bank loans, shares issued</td></tr>
 </tbody></table></div>
-<div class="callout">Under <b>IFRS</b> a <em>statement of changes in equity</em> is required (shows changes in <b>all</b> equity components — share capital and retained earnings). Under <b>ASPE</b> a <em>statement of retained earnings</em> is presented (only retained earnings).</div>`
+<div class="callout">Under <b>IFRS</b> a <em>statement of changes in equity</em> is required (shows changes in <b>all</b> equity components — share capital and retained earnings). Under <b>ASPE</b> a <em>statement of retained earnings</em> is presented (only retained earnings).</div>
+<div data-diagram="flow"></div>`
       },
       {
         title: "Statement of financial position: assets & liabilities",
@@ -128,7 +129,8 @@ window.CHAPTERS = [
 </ul>
 <h4>Expanded equation</h4>
 <div class="formula small">Assets = Liabilities + Owner’s Capital − Drawings + Revenues − Expenses</div>
-<div class="formula small">Corporation: Assets = Liabilities + Share Capital + Retained Earnings<br><span class="muted">where Retained Earnings = Beginning RE + Revenues − Expenses − Dividends</span></div>`
+<div class="formula small">Corporation: Assets = Liabilities + Share Capital + Retained Earnings<br><span class="muted">where Retained Earnings = Beginning RE + Revenues − Expenses − Dividends</span></div>
+<div data-diagram="equation"></div>`
       },
       {
         title: "Income statement: revenues & expenses",
@@ -255,7 +257,8 @@ window.CHAPTERS = [
 <ol class="cycle">
 <li>Analyze transactions</li><li>Journalize</li><li>Post</li><li>Prepare unadjusted trial balance</li><li>Adjust</li><li>Prepare adjusted trial balance</li><li>Prepare statements</li><li>Close</li><li>Prepare post-closing trial balance</li>
 </ol>
-<p class="muted">Steps 1–4 are Chapter 3. Steps 5–9 are Chapter 4.</p>`
+<p class="muted">Steps 1–4 are Chapter 3. Steps 5–9 are Chapter 4.</p>
+<div data-diagram="cycle"></div>`
       },
       {
         title: "The recording process (first three steps)",
@@ -306,7 +309,8 @@ window.CHAPTERS = [
 <div class="taccount wide"><div class="t-title">Cash</div>
 <div class="t-left">10,000<br>3,200<br>1,900<hr><b>Bal. 10,200</b></div>
 <div class="t-right">3,200<br>1,200<br>500<hr>&nbsp;</div></div>
-<p class="muted">Debits 15,100 − Credits 4,900 = 10,200 debit balance (from the Shelby Kindall example).</p>`
+<p class="muted">Debits 15,100 − Credits 4,900 = 10,200 debit balance (from the Shelby Kindall example).</p>
+<div data-diagram="posting"></div>`
       },
       {
         title: "The trial balance",
@@ -416,7 +420,8 @@ window.CHAPTERS = [
 <p><b>Current liabilities</b><br>Bank indebtedness · Accounts payable · Deferred (unearned) revenue · Notes payable · Current portion of long-term debt</p>
 <p><b>Non-current liabilities</b><br>Notes payable · Bank loan payable</p>
 <p><b>Shareholders’ equity</b><br>Share capital · Retained earnings</p></div>
-</div>`
+</div>
+<div data-diagram="sorter"></div>`
       },
       {
         title: "Current assets",
@@ -503,7 +508,8 @@ window.CHAPTERS = [
 <tr><td>Current ratio</td><td>Current assets ÷ Current liabilities</td><td>Liquidity</td></tr>
 <tr><td>Debt to total assets</td><td>Total liabilities ÷ Total assets</td><td>Solvency</td></tr>
 <tr><td>Basic earnings per share</td><td>(Net income − Preferred dividends) ÷ Weighted average # common shares</td><td>Profitability</td></tr>
-</tbody></table></div>`
+</tbody></table></div>
+<div data-diagram="ratios"></div>`
       }
     ],
     examples: [
@@ -624,7 +630,8 @@ window.CHAPTERS = [
 <tr><td><b>Accrued expenses</b></td><td>None</td><td>Expenses understated; liabilities understated → net income overstated</td><td>Dr Expense<br>Cr Payable</td></tr>
 <tr><td><b>Accrued revenues</b></td><td>None</td><td>Revenues understated; assets understated → net income understated</td><td>Dr Receivable<br>Cr Revenue</td></tr>
 </tbody></table></div>
-<p class="muted">Prepaids + unearned revenue = <b>prepayments / deferrals</b> (cash first). Accrued expenses + accrued revenues = <b>accruals</b> (cash later).</p>`
+<p class="muted">Prepaids + unearned revenue = <b>prepayments / deferrals</b> (cash first). Accrued expenses + accrued revenues = <b>accruals</b> (cash later).</p>
+<div data-diagram="timing"></div>`
       },
       {
         title: "Depreciation",
@@ -634,7 +641,8 @@ window.CHAPTERS = [
 <li>The portion used up each period is reported as an expense.</li>
 </ul>
 <div class="formula">Straight-line depreciation = (Cost − Residual value) ÷ Estimated useful life</div>
-<p>Entry: <b>Dr Depreciation Expense / Cr Accumulated Depreciation</b> (contra asset — the asset account itself is never credited).</p>`
+<p>Entry: <b>Dr Depreciation Expense / Cr Accumulated Depreciation</b> (contra asset — the asset account itself is never credited).</p>
+<div data-diagram="depreciation"></div>`
       },
       {
         title: "Income tax expense",
@@ -677,7 +685,8 @@ window.CHAPTERS = [
 </ol>
 <p class="muted">Proprietorship: steps 3 and 4 go to <b>Owner’s Capital</b> instead of Retained Earnings, and <b>Drawings</b> replaces Dividends.</p>
 <h4>Post-closing trial balance</h4>
-<p>Lists only <b>permanent</b> (balance sheet) accounts after closing, proving debits still equal credits going into the new period.</p>`
+<p>Lists only <b>permanent</b> (balance sheet) accounts after closing, proving debits still equal credits going into the new period.</p>
+<div data-diagram="closing"></div>`
       },
       {
         title: "Revenue recognition — IFRS vs ASPE",
@@ -855,7 +864,8 @@ window.CHAPTERS = [
 </div>
 <h4>Flow of costs</h4>
 <div class="formula small">Beginning Inventory + Cost of Goods Purchased = Cost of Goods Available for Sale</div>
-<p>Goods available for sale end up either as <b>Cost of Goods Sold</b> (income statement) or <b>Ending Inventory</b> (statement of financial position).</p>`
+<p>Goods available for sale end up either as <b>Cost of Goods Sold</b> (income statement) or <b>Ending Inventory</b> (statement of financial position).</p>
+<div data-diagram="inventory"></div>`
       },
       {
         title: "Perpetual vs periodic inventory",
@@ -875,7 +885,8 @@ window.CHAPTERS = [
 <div><b>Nov 2</b><span>Purchase or sale</span></div>
 <div><b>Nov 2 – Nov 12</b><span>Discount period (10 days): pay full amount − 2%</span></div>
 <div><b>Nov 13 – Dec 2</b><span>Credit period (30 days): pay full amount</span></div>
-</div>`
+</div>
+<div data-diagram="discount"></div>`
       },
       {
         title: "Recording purchases (perpetual)",

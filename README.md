@@ -7,6 +7,12 @@ Textbook: Kimmel et al., *Financial Accounting: Tools for Business Decision-Maki
 
 - **Dashboard**: countdown to the next exam, a day-by-day study plan, readiness, the next 7 days and upcoming deadlines
 - **Exam prep**: one page per exam with the format, a chapter "can you do this?" checklist, exam tips and a full **mock Midterm 1** (journalize → trial balance → adjusting entries → statements → closing) with solutions
+- **Visual lab**: 11 live, interactive diagrams, also built into the chapter notes:
+  - the accounting equation balance and how the statements connect (Ch 1)
+  - the accounting cycle wheel and journal → ledger → trial balance posting (Ch 3)
+  - a classified balance sheet sorting game and a ratio lab with gauges (Ch 2)
+  - cash timing vs. recognition for adjusting entries, a depreciation chart and the closing process (Ch 4)
+  - inventory cost flow and the 2/10, n/30 discount window (Ch 5)
 - **Overall notes**: the whole course on one printable page (equation, debit/credit rules, accounting cycle, adjusting-entry cheat sheet, formulas, and every chapter's key points)
 - **Chapter notes**: each chapter has a *Quick summary*, *Full notes*, *Worked examples* (with solutions you reveal when ready) and *Practice*
 - **Practice**: a debit/credit drill, flashcards and multiple-choice quizzes with explanations
@@ -61,6 +67,7 @@ All content lives in the `data/` folder. You don't need to touch the app code.
   Journal entries are written as `[account, debit, credit]`, and the site formats them and checks totals for you.
 - **`data/calendar.js`**: course info, grade weights, the chapter roadmap (teaching order, class dates, homework, which exam)
   and every dated event. Exams automatically get a countdown and study plan on the dashboard.
+- **`assets/diagrams.js`**: the live diagrams. Drop `<div data-diagram="id"></div>` into any chapter section to embed one.
 - **`data/exams.js`**: exam-prep pages: format, tips and mock-exam problems for each exam.
 
 ## Disclaimer

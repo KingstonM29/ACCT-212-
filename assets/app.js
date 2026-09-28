@@ -6,6 +6,19 @@
   const EXAMS = window.EXAMS || [];
   const CONTENT = window.CHAPTERS || [];
   const app = document.getElementById("app");
+  const DIAGRAMS = window.DIAGRAMS || {};
+  const DIAGRAM_ORDER = window.DIAGRAM_ORDER || [];
+  const diagramsFor = (num) => DIAGRAM_ORDER.filter((id) => DIAGRAMS[id].ch === num);
+  function mountDiagrams(root) {
+    root.querySelectorAll("[data-diagram]").forEach((el) => {
+      const d = DIAGRAMS[el.dataset.diagram];
+      if (!d || el.dataset.mounted) return;
+      el.dataset.mounted = "1";
+      el.classList.add("dg");
+      el.innerHTML = `<div class="dg-head"><span class="dg-live"><i></i>Live diagram</span><h3>${d.title}</h3><p>${d.blurb}</p></div><div class="dg-body"></div>`;
+      try { d.mount(el.querySelector(".dg-body")); } catch (err) { el.querySelector(".dg-body").innerHTML = `<p class="muted">This diagram couldn’t load.</p>`; }
+    });
+  }
 
   /* ---------- chapters: roadmap (from the outline) + content (from the slides) ---------- */
   const ROADMAP = (COURSE.chapters || []).map((r, i) => Object.assign({ order: i + 1 }, r, {
@@ -150,6 +163,7 @@
           if (!slice.length) { plan.push({ d, title: "Catch-up / practice", tasks: [`<a href="#/practice?mode=drill">Debit/credit drill</a> until you hit a 20 streak`, "Redo any worked example you got wrong"] }); continue; }
           plan.push({ d, title: slice.map((c) => `${chLabel(c)}: ${esc(c.title)}`).join(" + "), tasks: slice.flatMap((c) => [
             `<a href="#/chapter/${c.id}/summary">${chLabel(c)} summary</a> → <a href="#/chapter/${c.id}/notes">full notes</a>`,
+            ...(diagramsFor(c.number).length ? [`Play with the <a href="#/chapter/${c.id}/visuals">${chLabel(c)} live diagrams</a> until each one makes sense`] : []),
             `Try the <a href="#/chapter/${c.id}/examples">${chLabel(c)} worked examples</a> before revealing the answers`,
             `<a href="#/chapter/${c.id}/practice">${chLabel(c)} quiz</a> + tick off the checklist`]) });
         }
@@ -172,7 +186,7 @@
     highlightNav();
   }
   function highlightNav() {
-    const parts = location.hash.replace(/^#\/?/, "").split(/[/?]/);
+    const parts = location.hash.replace(/^#\/?/, "").split(/[/?#]/);
     const route = parts[0] || "home";
     document.querySelectorAll("#nav > a").forEach((a) => a.classList.toggle("active", a.dataset.route === route || (route === "chapter" && a.dataset.route === "notes")));
     document.querySelectorAll(".nav-chapters a").forEach((a) => a.classList.toggle("active", route === "chapter" && a.dataset.ch === parts[1]));
@@ -230,7 +244,8 @@
       <div class="chapter-grid">${CH.map((c) => chapterCard(c, p)).join("")}</div>
       <div class="section-title"><h2>Study tools</h2></div>
       <div class="quick">
-        <a class="card" href="#/overview"><h3>Overall notes</h3><p>Every rule, formula and key point on one printable page.</p></a>
+        <a class="card tool-feature" href="#/visual"><h3>Visual lab</h3><p>${DIAGRAM_ORDER.length} live diagrams: watch entries post, statements connect and accounts close.</p></a>
+        <a class="card" href="#/overview"><h3>Overall notes</h3><p>Every rule, formula and key point on one page.</p></a>
         <a class="card" href="#/practice?mode=drill"><h3>Debit / credit drill</h3><p>Rapid-fire: which side increases this account?</p></a>
         <a class="card" href="#/practice?mode=quiz"><h3>Practice quiz</h3><p>Multiple choice with explanations.</p></a>
         <a class="card" href="#/grades"><h3>Grade calculator</h3><p>What do you need on the final?</p></a>
@@ -279,7 +294,8 @@
     const i = CH.indexOf(c), prev = CH[i - 1], next = CH[i + 1];
     const s = progress()[c.id] || {};
     const m = c.meta || {};
-    const tabs = [["summary", "Quick summary"], ["notes", "Full notes"], ["examples", "Worked examples"], ["practice", "Practice"]];
+    const dgs = diagramsFor(c.number);
+    const tabs = [["summary", "Quick summary"], ["notes", "Full notes"]].concat(dgs.length ? [["visuals", `Live diagrams (${dgs.length})`]] : [], [["examples", "Worked examples"], ["practice", "Practice"]]);
     let body = "";
     if (tab === "summary") {
       body = `<ul class="summary-list">${(c.summary || []).map((x) => `<li>${x}</li>`).join("")}</ul>
@@ -288,6 +304,8 @@
     } else if (tab === "notes") {
       body = `<div class="btn-row" style="margin-bottom:12px"><button class="btn" data-act="expand">Expand all</button><button class="btn" data-act="collapse">Collapse all</button></div>
         ${(c.sections || []).map((sec, k) => `<details class="note" ${k < 2 ? "open" : ""}><summary>${esc(sec.title)}</summary><div class="body">${sec.html}</div></details>`).join("")}`;
+    } else if (tab === "visuals") {
+      body = dgs.map((id) => `<div data-diagram="${id}"></div>`).join("") || `<p class="muted">No live diagrams yet.</p>`;
     } else if (tab === "examples") {
       body = (c.examples || []).map((ex, k) => renderExample(c.id, ex, k)).join("") || `<p class="muted">No worked examples yet.</p>`;
     } else if (tab === "practice") {
@@ -368,7 +386,7 @@
         <div class="card hero"><div class="eyebrow">${past ? "Done" : "Countdown"}</div>
           ${cd && !past ? `<div class="countdown"><span class="big">${cd.big}</span><span class="unit">${cd.unit}</span></div>` : past ? "<h2>This exam is finished 🎉</h2>" : ""}
           <h4>What to expect</h4><ul>${info.format.map((f) => `<li>${f}</li>`).join("")}</ul>
-          <div class="btn-row">${info.problems.length ? `<a class="btn primary" href="#/exam/${id}#mock">Mock exam</a>` : ""}<a class="btn" href="#/practice?mode=quiz&exam=${id}">Mixed quiz</a><a class="btn" href="#/practice?mode=cards&exam=${id}">Flashcards</a><a class="btn" href="#/overview?exam=${id}">Overall notes</a></div></div>
+          <div class="btn-row">${info.problems.length ? `<a class="btn primary" href="#/exam/${id}#mock">Mock exam</a>` : ""}<a class="btn" href="#/practice?mode=quiz&exam=${id}">Mixed quiz</a><a class="btn" href="#/practice?mode=cards&exam=${id}">Flashcards</a><a class="btn" href="#/visual?exam=${id}">Live diagrams</a><a class="btn" href="#/overview?exam=${id}">Overall notes</a></div></div>
         <div class="card" id="checklist-top"><div class="eyebrow">Readiness</div>
           <div class="progress-wrap">${ring(ready.pct)}<div class="stat-list"><span><b>${ready.done}/${ready.total}</b> skills checked off</span><span class="muted">Tick the checklist below as you master each skill.</span></div></div></div>
       </div>
@@ -379,6 +397,18 @@
       ${info.tips.length ? `<div class="section-title"><h2>Exam tips</h2></div><div class="card"><ul class="tips">${info.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>` : ""}
       ${info.problems.length ? `<div class="section-title" id="mock"><h2>Mock exam</h2><span class="muted">One company, start to finish, like a real paper midterm. Try each problem on paper first.</span></div>
         ${info.problems.map((pr, k) => renderExample("exam-" + id, pr, k)).join("")}` : ""}`;
+  }
+
+  /* ---------- visual lab ---------- */
+  function viewVisual(query) {
+    const info = examInfo(query.get("exam") || "");
+    const chs = (info ? info.chapters.map(byNum).filter(Boolean) : CH).filter((c) => diagramsFor(c.number).length);
+    return `<div class="page-head"><div class="eyebrow">Visual lab</div><h1>See accounting move</h1>
+      <p>Interactive diagrams for every Midterm 1 topic and more. Press play, drag the sliders and predict what happens before it does. Each one is also built into the chapter notes.</p>
+      <div class="btn-row"><div class="seg">${[["", "All chapters"]].concat(EXAMS.filter((x) => x.chapters.some((n) => byNum(n) && diagramsFor(n).length)).map((x) => [x.id, x.title.replace(" Exam", "")])).map(([k, l]) => `<a href="#/visual${k ? "?exam=" + k : ""}" class="${(info ? info.id : "") === k ? "on" : ""}">${esc(l)}</a>`).join("")}</div></div>
+      <div class="chips" style="margin-top:14px">${chs.flatMap((c) => diagramsFor(c.number).map((id) => `<a class="chip" href="#/visual${info ? "?exam=" + info.id : ""}#dg-${id}">${chLabel(c)} · ${esc(DIAGRAMS[id].title)}</a>`)).join("")}</div></div>
+      ${chs.map((c) => `<div class="section-title"><h2>${chLabel(c)} · ${esc(c.title)}</h2><a href="#/chapter/${c.id}/notes">Notes →</a></div>
+        ${diagramsFor(c.number).map((id) => `<div data-diagram="${id}" id="dg-${id}"></div>`).join("")}`).join("")}`;
   }
 
   /* ---------- overall notes ---------- */
@@ -719,6 +749,7 @@
       (c.examples || []).forEach((e) => idx.push({ c, where: "Example", title: e.title, text: strip(e.prompt), href: `#/chapter/${c.id}/examples` }));
       (c.flashcards || []).forEach((f) => idx.push({ c, where: "Flashcard", title: f.q, text: f.a, href: `#/practice?mode=cards&ch=${c.id}` }));
     });
+    DIAGRAM_ORDER.forEach((id) => { const d = DIAGRAMS[id], c = byNum(d.ch); if (c) idx.push({ c, where: "Live diagram", title: d.title, text: d.blurb, href: `#/visual#dg-${id}` }); });
     EXAMS.forEach((x) => x.problems.forEach((p) => idx.push({ c: { number: x.title.replace(" Exam", "") }, where: "Mock exam", title: p.title, text: strip(p.prompt), href: `#/exam/${x.id}#mock` })));
     return idx;
   }
@@ -743,14 +774,16 @@
   /* ---------- router ---------- */
   function route() {
     const raw = location.hash.replace(/^#\/?/, "");
-    const [pathAndAnchor, qs] = raw.split("?");
-    const [path, anchor] = pathAndAnchor.split("#");
+    const hashAt = raw.indexOf("#");
+    const anchor = hashAt >= 0 ? raw.slice(hashAt + 1) : "";
+    const [path, qs] = (hashAt >= 0 ? raw.slice(0, hashAt) : raw).split("?");
     const query = new URLSearchParams(qs || "");
     const parts = path.split("/").filter(Boolean);
     let html;
     switch (parts[0]) {
       case undefined: html = viewHome(); break;
       case "overview": html = viewOverview(query); break;
+      case "visual": html = viewVisual(query); break;
       case "notes": html = viewNotesIndex(); break;
       case "chapter": html = viewChapter(parts[1], parts[2]); break;
       case "exam": html = viewExam(parts[1]); break;
@@ -766,6 +799,7 @@
     highlightNav();
 
     // post-render mounts
+    mountDiagrams(app);
     app.querySelectorAll("[data-equation]").forEach((el) => {
       const [cid, exk] = el.dataset.equation.split("-ex");
       mountEquation(el, byId(cid).examples[+exk]);
@@ -829,14 +863,16 @@
   document.getElementById("menuBtn").addEventListener("click", () => document.body.classList.add("menu-open"));
   document.getElementById("scrim").addEventListener("click", () => document.body.classList.remove("menu-open"));
 
-  function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
-  function toggleTheme() {
-    const cur = document.documentElement.getAttribute("data-theme") ||
-      (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    const next = cur === "dark" ? "light" : "dark";
-    applyTheme(next); store.set("theme", next);
+  // Black is the default look; light mode is an opt-in per viewer.
+  function applyTheme(t) {
+    if (t === "light") document.documentElement.setAttribute("data-mode", "light"); else document.documentElement.removeAttribute("data-mode");
+    const b = document.getElementById("themeBtn"); if (b) b.textContent = t === "light" ? "Switch to black mode" : "Switch to light mode";
   }
-  applyTheme(store.get("theme", null));
+  function toggleTheme() {
+    const next = document.documentElement.getAttribute("data-mode") === "light" ? "dark" : "light";
+    applyTheme(next); store.set("mode", next);
+  }
+  applyTheme(store.get("mode", "dark"));
   document.getElementById("themeBtn").addEventListener("click", toggleTheme);
   document.getElementById("themeBtnTop").addEventListener("click", toggleTheme);
 
