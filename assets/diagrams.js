@@ -143,7 +143,7 @@
       const st = { rev: 5400, exp: 3256, div: 400, beg: 0 };
       el.innerHTML = `
         <div class="dg-sliders">${slider("rev", "Revenues", 0, 15000, 100, st.rev)}${slider("exp", "Expenses", 0, 15000, 100, st.exp)}${slider("div", "Dividends", 0, 3000, 50, st.div)}${slider("beg", "Beginning retained earnings", 0, 10000, 100, st.beg)}</div>
-        <div class="flow">
+        <div class="sflow">
           <div class="flow-card"><div class="flow-num">1</div><h4>Income Statement</h4>
             <div class="fl-row"><span>Revenues</span><b data-v="rev"></b></div>
             <div class="fl-row"><span>− Expenses</span><b data-v="exp"></b></div>
