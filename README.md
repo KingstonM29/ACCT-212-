@@ -1,6 +1,6 @@
 # ACCT 212 Study Guide (MacEwan)
 
-A free, student-made study dashboard for **ACCT 212 — Financial Accounting** at MacEwan University.
+A free, student-made study dashboard for **ACCT 212 — Introductory Accounting** at MacEwan University.
 Textbook: Kimmel et al., *Financial Accounting: Tools for Business Decision-Making*, 9th Canadian Edition.
 
 **What's inside**
@@ -55,8 +55,8 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 
 All content lives in the `data/` folder. You don't need to touch the app code.
 
-- **`data/chapters.js`**: one object per chapter. To add a chapter, copy an existing one, give it a new `id`
-  and set `order` to the class it's taught in. The comment at the top of the file explains every field
+- **`data/chapters.js`**: one object per chapter. To add a chapter, copy an existing one and give it a new `id` and
+  chapter `number`. Its class order, dates and exam come from the roadmap in `data/calendar.js`. The comment at the top of the file explains every field
   (summary bullets, key terms, notes sections, worked examples with journal entries, flashcards and quiz questions).
   Journal entries are written as `[account, debit, credit]`, and the site formats them and checks totals for you.
 - **`data/calendar.js`**: course info, grade weights, the chapter roadmap (teaching order, class dates, homework, which exam)
