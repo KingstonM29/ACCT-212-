@@ -4,6 +4,8 @@
 
   const COURSE = window.COURSE || { events: [], chapters: [] };
   const EXAMS = window.EXAMS || [];
+  const MOCKS = window.MOCK_EXAMS || [];
+  const mockFor = (examId) => MOCKS.find((m) => m.exam === examId);
   const CONTENT = window.CHAPTERS || [];
   const app = document.getElementById("app");
   const DIAGRAMS = window.DIAGRAMS || {};
@@ -80,11 +82,13 @@
     return { big: String(days), unit: `days to go · ${fmtDay(e.when, { weekday: "long", month: "long", day: "numeric" })}${e.time ? " at " + fmtTime(e.time) : ""}` };
   }
 
-  function readiness(chapterNums) {
+  function readiness(chapterNums, examId) {
     const c = checks(); let total = 0, done = 0;
     chapterNums.map(byNum).filter(Boolean).forEach((ch) => {
       (ch.checklist || []).forEach((_, i) => { total++; if ((c[ch.id] || [])[i]) done++; });
     });
+    const m = examId && mockFor(examId);
+    if (m) m.topics.forEach((t) => { total++; if ((c["topics-" + examId] || {})[t.id]) done++; });
     return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
   }
 
@@ -155,7 +159,7 @@
         const isLast = i === days - 1 && days > 1;
         if (isLast || days === 1) {
           plan.push({ d, title: days === 1 ? "Cram day: everything" : "Final review", tasks: [
-            `Work the <a href="#/exam/${info.id}#mock">mock exam</a> without looking at solutions`,
+            mockFor(info.id) ? `Take the <a href="#/mock/${mockFor(info.id).id}">interactive mock midterm</a> with the 80-minute timer, then review your weakest topics` : `Work the <a href="#/exam/${info.id}#practice">practice problems</a> without looking at solutions`,
             `Take the <a href="#/practice?mode=quiz&exam=${info.id}">mixed quiz</a> and aim for 80%+`,
             `Re-read the <a href="#/overview?exam=${info.id}">overall notes</a> and tick off your checklist`] });
         } else {
@@ -183,6 +187,8 @@
     const ne = nextExam();
     const examLink = document.getElementById("navExam");
     if (examLink) { examLink.href = ne ? `#/exam/${ne.exam}` : "#/calendar"; examLink.textContent = ne ? `Exam prep · ${ne.title.replace(" Exam", "")}` : "Exam prep"; }
+    const mockLink = document.getElementById("navMock"), nm = ne && mockFor(ne.exam);
+    if (mockLink) { mockLink.hidden = !nm; if (nm) { mockLink.href = `#/mock/${nm.id}`; mockLink.textContent = nm.title; } }
     highlightNav();
   }
   function highlightNav() {
@@ -201,7 +207,7 @@
     const reviewed = examChs.filter((c) => p[c.id] && p[c.id].read).length;
     const scores = examChs.map((c) => p[c.id] && p[c.id].best).filter((x) => x != null);
     const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-    const ready = info ? readiness(info.chapters) : { pct: 0, done: 0, total: 0 };
+    const ready = info ? readiness(info.chapters, info.id) : { pct: 0, done: 0, total: 0 };
     const today = startOfToday();
     const weekEnd = new Date(today); weekEnd.setDate(today.getDate() + 8);
     const week = upcoming((e) => e.when < weekEnd);
@@ -215,7 +221,7 @@
         <div class="countdown"><span class="big">${cd.big}</span><span class="unit">${cd.unit}</span></div>
         <p class="muted">${esc(ne.location || "")}</p>
         <div class="chips">${(ne.covers || []).map((n) => { const c = byNum(n); return c ? `<a class="chip" href="#/chapter/${c.id}">Ch ${n}</a>` : `<span class="chip off">Ch ${n}</span>`; }).join("")}</div>
-        <div class="btn-row">${info ? `<a class="btn primary" href="#/exam/${ne.exam}">Open ${esc(ne.title.replace(" Exam", ""))} prep</a><a class="btn" href="#/exam/${ne.exam}#mock">Mock exam</a>` : ""}<a class="btn" href="#/overview${info ? "?exam=" + info.id : ""}">Overall notes</a></div>`;
+        <div class="btn-row">${info ? `<a class="btn primary" href="#/exam/${ne.exam}">Open ${esc(ne.title.replace(" Exam", ""))} prep</a>${mockFor(ne.exam) ? `<a class="btn" href="#/mock/${mockFor(ne.exam).id}">Mock exam</a>` : ""}` : ""}<a class="btn" href="#/overview${info ? "?exam=" + info.id : ""}">Overall notes</a></div>`;
     }
 
     return `
@@ -375,7 +381,9 @@
   function viewExam(id) {
     const info = examInfo(id), ev = examEvent(id);
     if (!info) return viewNotFound();
-    const ready = readiness(info.chapters);
+    const ready = readiness(info.chapters, id);
+    const mock = mockFor(id);
+    const mockLast = mock ? store.get("mockScore." + mock.id, null) : null;
     const cd = ev ? countdownText(ev) : null;
     const past = ev && ev.until < startOfToday();
     const chs = info.chapters.map((n) => roadByNum(n)).filter(Boolean);
@@ -386,17 +394,33 @@
         <div class="card hero"><div class="eyebrow">${past ? "Done" : "Countdown"}</div>
           ${cd && !past ? `<div class="countdown"><span class="big">${cd.big}</span><span class="unit">${cd.unit}</span></div>` : past ? "<h2>This exam is finished 🎉</h2>" : ""}
           <h4>What to expect</h4><ul>${info.format.map((f) => `<li>${f}</li>`).join("")}</ul>
-          <div class="btn-row">${info.problems.length ? `<a class="btn primary" href="#/exam/${id}#mock">Mock exam</a>` : ""}<a class="btn" href="#/practice?mode=quiz&exam=${id}">Mixed quiz</a><a class="btn" href="#/practice?mode=cards&exam=${id}">Flashcards</a><a class="btn" href="#/visual?exam=${id}">Live diagrams</a><a class="btn" href="#/overview?exam=${id}">Overall notes</a></div></div>
+          <div class="btn-row">${mock ? `<a class="btn primary" href="#/mock/${mock.id}">Take the mock exam</a>` : ""}<a class="btn" href="#/practice?mode=quiz&exam=${id}">Mixed quiz</a><a class="btn" href="#/practice?mode=cards&exam=${id}">Flashcards</a><a class="btn" href="#/visual?exam=${id}">Live diagrams</a><a class="btn" href="#/overview?exam=${id}">Overall notes</a></div></div>
         <div class="card" id="checklist-top"><div class="eyebrow">Readiness</div>
           <div class="progress-wrap">${ring(ready.pct)}<div class="stat-list"><span><b>${ready.done}/${ready.total}</b> skills checked off</span><span class="muted">Tick the checklist below as you master each skill.</span></div></div></div>
       </div>
+      ${mock ? `<a class="card mock-cta" href="#/mock/${mock.id}"><div><div class="eyebrow">Interactive · auto-graded · ${mock.minutes} min</div><h2>${esc(mock.title)}</h2>
+        <p>Built from your instructor’s topic list: concepts, normal balances, the accounting cycle, journal entries, T-accounts, adjusting entries, statements and closing entries. You get a score for every topic.</p></div>
+        <div class="mock-cta-go">${mockLast != null ? `<span>Best so far</span><b>${mockLast}%</b>` : `<b>Start →</b>`}</div></a>` : ""}
       ${ev && !past ? studyPlan(ev, info) : ""}
+      ${mock ? `<div class="section-title" id="topics"><h2>Your instructor’s topic list</h2><span class="muted">“These will be on the midterm for sure”</span></div>
+        <div class="card"><ul class="checklist topics">${mock.topics.map((t) => `<li><label><input type="checkbox" data-topic="${id}:${t.id}" ${(checks()["topics-" + id] || {})[t.id] ? "checked" : ""}><span>${esc(t.label)}</span></label>
+          <span class="topic-links">${t.learn.map((l) => `<a href="${l[1]}">${esc(l[0])}</a>`).join("")}</span></li>`).join("")}</ul></div>` : ""}
       <div class="section-title" id="checklist"><h2>Chapter checklist</h2><span class="muted">Can you do it without notes?</span></div>
       <div class="grid">${chs.map((r) => r.content ? `<div class="card"><div class="section-title" style="margin:0 0 6px"><h3 style="margin:0"><a href="#/chapter/${r.content.id}">Ch ${r.number} · ${esc(r.title)}</a></h3><a class="btn" href="#/chapter/${r.content.id}/summary">Review</a></div>${checklistHtml(r.content)}</div>`
         : `<div class="card soon"><h3 style="margin:0">Ch ${r.number} · ${esc(r.title)}</h3><p class="muted" style="margin:6px 0 0">Notes not added yet. Use the textbook and slides for now.</p></div>`).join("")}</div>
       ${info.tips.length ? `<div class="section-title"><h2>Exam tips</h2></div><div class="card"><ul class="tips">${info.tips.map((t) => `<li>${t}</li>`).join("")}</ul></div>` : ""}
-      ${info.problems.length ? `<div class="section-title" id="mock"><h2>Mock exam</h2><span class="muted">One company, start to finish, like a real paper midterm. Try each problem on paper first.</span></div>
+      ${info.problems.length ? `<div class="section-title" id="practice"><h2>Worked practice problems</h2><span class="muted">Northside Tutoring (a corporation): one company start to finish with full solutions.</span></div>
         ${info.problems.map((pr, k) => renderExample("exam-" + id, pr, k)).join("")}` : ""}`;
+  }
+
+  /* ---------- mock exam ---------- */
+  function viewMock(id) {
+    const m = MOCKS.find((x) => x.id === id);
+    if (!m) return viewNotFound();
+    const ev = examEvent(m.exam);
+    return `<div class="page-head"><div class="eyebrow">${ev ? esc(ev.title) + " · " + dateRange(ev) : "Mock exam"}</div><h1>${esc(m.title)}</h1>
+      <p>Answer like it’s the real thing, then grade it. Every question is tagged to a topic on your instructor’s list, so your results show exactly what to review.</p>
+      <div class="btn-row"><a class="btn" href="#/exam/${m.exam}">← Exam prep</a></div></div><div id="mockMount"></div>`;
   }
 
   /* ---------- visual lab ---------- */
@@ -750,7 +774,7 @@
       (c.flashcards || []).forEach((f) => idx.push({ c, where: "Flashcard", title: f.q, text: f.a, href: `#/practice?mode=cards&ch=${c.id}` }));
     });
     DIAGRAM_ORDER.forEach((id) => { const d = DIAGRAMS[id], c = byNum(d.ch); if (c) idx.push({ c, where: "Live diagram", title: d.title, text: d.blurb, href: `#/visual#dg-${id}` }); });
-    EXAMS.forEach((x) => x.problems.forEach((p) => idx.push({ c: { number: x.title.replace(" Exam", "") }, where: "Mock exam", title: p.title, text: strip(p.prompt), href: `#/exam/${x.id}#mock` })));
+    EXAMS.forEach((x) => x.problems.forEach((p) => idx.push({ c: { number: x.title.replace(" Exam", "") }, where: "Mock exam", title: p.title, text: strip(p.prompt), href: `#/exam/${x.id}#practice` })));
     return idx;
   }
   let INDEX;
@@ -784,6 +808,7 @@
       case undefined: html = viewHome(); break;
       case "overview": html = viewOverview(query); break;
       case "visual": html = viewVisual(query); break;
+      case "mock": html = viewMock(parts[1]); break;
       case "notes": html = viewNotesIndex(); break;
       case "chapter": html = viewChapter(parts[1], parts[2]); break;
       case "exam": html = viewExam(parts[1]); break;
@@ -800,6 +825,12 @@
 
     // post-render mounts
     mountDiagrams(app);
+    const mm = document.getElementById("mockMount");
+    if (mm && window.MockExam) {
+      const m = MOCKS.find((x) => x.id === parts[1]);
+      const letter = (pct) => ((COURSE.letterGrades || []).find((l) => pct >= l[1]) || [""])[0];
+      window.MockExam.render(mm, m, { letter, onGraded: (pct) => { const best = store.get("mockScore." + m.id, null); if (best == null || pct > best) store.set("mockScore." + m.id, Math.round(pct * 10) / 10); } });
+    }
     app.querySelectorAll("[data-equation]").forEach((el) => {
       const [cid, exk] = el.dataset.equation.split("-ex");
       mountEquation(el, byId(cid).examples[+exk]);
@@ -845,6 +876,11 @@
       const mode = (location.hash.match(/mode=(\w+)/) || [])[1] || "cards";
       const v = e.target.value;
       location.hash = `#/practice?mode=${mode}${v.startsWith("exam:") ? "&exam=" + v.slice(5) : v !== "all" ? "&ch=" + v : ""}`;
+    }
+    if (e.target.dataset.topic) {
+      const [ex, tid] = e.target.dataset.topic.split(":");
+      const c = checks(); c["topics-" + ex] = c["topics-" + ex] || {}; c["topics-" + ex][tid] = e.target.checked; store.set("checks", c);
+      const y = window.scrollY; route(); window.scrollTo(0, y);
     }
     if (e.target.dataset.check) {
       const [id, i] = e.target.dataset.check.split(":");

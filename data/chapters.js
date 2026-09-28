@@ -39,6 +39,7 @@ window.CHAPTERS = [
       "Four statements, in order: <b>Income Statement → Statement of Retained Earnings → Statement of Financial Position → Statement of Cash Flows</b>.",
       "<b>Assets = Liabilities + Equity</b>. It must balance after every transaction — every transaction has a <b>dual effect</b>.",
       "Revenues <b>increase</b> equity; expenses and drawings/dividends <b>decrease</b> equity. Drawings/dividends are <b>not</b> expenses.",
+      "Proprietorship: <b>Statement of owner’s equity</b> = Beginning capital + investments + net income − drawings = ending capital (shown on the balance sheet).",
       "Only events that change assets, liabilities or equity get recorded.",
       "Public companies must use <b>IFRS</b>; private companies usually use <b>ASPE</b> (but may choose IFRS and must then be consistent).",
       "Ethical dilemma: (1) identify who is affected, (2) identify alternatives, (3) choose the most ethical one."
@@ -105,6 +106,23 @@ window.CHAPTERS = [
 </tbody></table></div>
 <div class="callout">Under <b>IFRS</b> a <em>statement of changes in equity</em> is required (shows changes in <b>all</b> equity components — share capital and retained earnings). Under <b>ASPE</b> a <em>statement of retained earnings</em> is presented (only retained earnings).</div>
 <div data-diagram="flow"></div>`
+      },
+      {
+        title: "Statement of owner’s equity (proprietorship)",
+        html: `
+<p>A <b>proprietorship</b> has no retained earnings or shares, so its second statement is the <b>statement of owner’s equity</b> instead of the statement of retained earnings.</p>
+<div class="stack formula-stack"><span>Owner’s capital, beginning</span><span>+ Owner investments</span><span>+ Net income (or − net loss)</span><span>− Drawings</span><span class="total">= Owner’s capital, ending</span></div>
+<div class="table-wrap"><table>
+<thead><tr><th></th><th>Proprietorship</th><th>Corporation</th></tr></thead>
+<tbody>
+<tr><td>Equity accounts</td><td>Owner’s Capital</td><td>Share Capital + Retained Earnings</td></tr>
+<tr><td>Owner contributes cash</td><td>Credit Owner’s Capital</td><td>Credit Common Shares</td></tr>
+<tr><td>Distributions to owners</td><td>Drawings (debit balance)</td><td>Dividends (debit balance)</td></tr>
+<tr><td>2nd statement</td><td>Statement of owner’s equity</td><td>Statement of retained earnings (ASPE) / changes in equity (IFRS)</td></tr>
+<tr><td>Closing goes to</td><td>Owner’s Capital</td><td>Retained Earnings</td></tr>
+<tr><td>Income tax expense?</td><td>No: the owner pays personally</td><td>Yes: the corporation pays</td></tr>
+</tbody></table></div>
+<div class="callout tip">Owner investments go on the statement of owner’s equity. They are <b>never revenue</b>. Drawings are <b>never an expense</b>. Ending capital is the figure that appears on the balance sheet.</div>`
       },
       {
         title: "Statement of financial position: assets & liabilities",
@@ -198,7 +216,9 @@ window.CHAPTERS = [
       { q: "Balance sheet: point in time or period of time?", a: "Point in time (e.g. 'as at December 31'). The income statement covers a period." },
       { q: "Who must use IFRS in Canada?", a: "Publicly traded corporations. Private companies usually use ASPE." },
       { q: "Name the 3 steps for an ethical dilemma.", a: "1) Identify who is affected 2) Identify alternatives 3) Choose the most ethical alternative" },
-      { q: "Revenue is recorded along with…", a: "An increase in an asset or a decrease in a liability." }
+      { q: "Revenue is recorded along with…", a: "An increase in an asset or a decrease in a liability." },
+      { q: "Statement of owner’s equity format?", a: "Beginning capital + investments + net income − drawings = ending capital" },
+      { q: "Internal vs external users, give an example of each.", a: "Internal: managers, employees. External: investors, creditors/banks, CRA, customers." }
     ],
     quiz: [
       { q: "A company buys equipment for cash. Effect on the accounting equation?", options: ["Assets ↑, Equity ↑", "One asset ↑, another asset ↓ — totals unchanged", "Assets ↑, Liabilities ↑", "Assets ↓, Equity ↓"], answer: 1, why: "Equipment goes up and Cash goes down by the same amount. Total assets don’t change." },
@@ -210,7 +230,10 @@ window.CHAPTERS = [
       { q: "Beginning RE $12,000, net income $5,000, dividends $2,000. Ending RE?", options: ["$19,000", "$15,000", "$9,000", "$17,000"], answer: 1, why: "12,000 + 5,000 − 2,000 = 15,000." },
       { q: "Under IFRS, which equity statement is required?", options: ["Statement of retained earnings", "Statement of changes in equity", "Statement of owner’s capital", "None"], answer: 1, why: "IFRS shows changes in ALL equity components; ASPE uses a statement of retained earnings." },
       { q: "A private company chose IFRS last year. This year it…", options: ["Can switch back to ASPE anytime", "Must apply IFRS consistently", "Must use both", "Uses whichever gives higher income"], answer: 1, why: "Once the choice is made it must be applied consistently." },
-      { q: "Performed services for $900 on account. Effect?", options: ["Assets ↑, Liabilities ↑", "Assets ↑, Equity ↑", "Liabilities ↓, Equity ↑", "No effect until cash is received"], answer: 1, why: "A/R (asset) ↑ and revenue increases equity. Revenue is earned when the service is done." }
+      { q: "Performed services for $900 on account. Effect?", options: ["Assets ↑, Liabilities ↑", "Assets ↑, Equity ↑", "Liabilities ↓, Equity ↑", "No effect until cash is received"], answer: 1, why: "A/R (asset) ↑ and revenue increases equity. Revenue is earned when the service is done." },
+      { q: "Beginning capital $15,000, investments $4,000, net income $6,000, drawings $2,500. Ending capital?", options: ["$22,500", "$27,500", "$25,000", "$19,000"], answer: 0, why: "15,000 + 4,000 + 6,000 − 2,500 = 22,500." },
+      { q: "Which is an EXTERNAL user?", options: ["The company’s controller", "A supplier deciding whether to extend credit", "The sales manager", "An employee planning the budget"], answer: 1, why: "Suppliers and creditors are outside the business." },
+      { q: "An owner invests $10,000 cash in their proprietorship. The credit is to…", options: ["Service Revenue", "Owner’s Capital", "Owner’s Drawings", "Common Shares"], answer: 1, why: "Investments increase owner’s capital. They are not revenue, and a proprietorship has no shares." }
     ]
   },
 

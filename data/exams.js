@@ -21,6 +21,7 @@ window.EXAMS = [
       "Dividends are <b>never</b> on the income statement.",
       "Accumulated depreciation is subtracted from the asset on the balance sheet. Don't list it as a liability.",
       "Show your work on every calculation. Part marks are common on paper exams.",
+      "Proprietorship questions: use a <b>statement of owner’s equity</b> (beginning capital + investments + net income − drawings), close to <b>Capital</b>, and there’s no income tax.",
       "Know the IFRS vs ASPE differences: statement of changes in equity vs statement of retained earnings, and 5-step revenue recognition vs 3 conditions."
     ],
     problems: [

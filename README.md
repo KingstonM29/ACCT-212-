@@ -7,6 +7,7 @@ Textbook: Kimmel et al., *Financial Accounting: Tools for Business Decision-Maki
 
 - **Dashboard**: countdown to the next exam, a day-by-day study plan, readiness, the next 7 days and upcoming deadlines
 - **Exam prep**: one page per exam with the format, a chapter "can you do this?" checklist, exam tips and a full **mock Midterm 1** (journalize → trial balance → adjusting entries → statements → closing) with solutions
+- **Interactive Mock Midterm 1**: built from the instructor's *Summary for Midterm #1* topic list. It has 8 parts and 90 marks: concepts, normal balances, the accounting cycle, journal entries, T-accounts, the adjusting entries, the statements (including the statement of owner's equity) and the 4 closing entries. It auto-grades, has an 80-minute timer, saves your answers and breaks your score down by topic.
 - **Visual lab**: 11 live, interactive diagrams, also built into the chapter notes:
   - the accounting equation balance and how the statements connect (Ch 1)
   - the accounting cycle wheel and journal → ledger → trial balance posting (Ch 3)
@@ -68,6 +69,7 @@ All content lives in the `data/` folder. You don't need to touch the app code.
 - **`data/calendar.js`**: course info, grade weights, the chapter roadmap (teaching order, class dates, homework, which exam)
   and every dated event. Exams automatically get a countdown and study plan on the dashboard.
 - **`assets/diagrams.js`**: the live diagrams. Drop `<div data-diagram="id"></div>` into any chapter section to embed one.
+- **`data/mock-midterm1.js`**: the interactive mock exam (questions tagged by topic). `assets/mock.js` grades it.
 - **`data/exams.js`**: exam-prep pages: format, tips and mock-exam problems for each exam.
 
 ## Disclaimer
