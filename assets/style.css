@@ -831,3 +831,4 @@ th.fs-head span { font-weight: 400; color: var(--muted); }
 .gl-grid div { display: flex; justify-content: space-between; gap: 10px; font-size: .88rem; padding: 3px 0; border-bottom: 1px dashed var(--border); }
 .gl-grid b { font-family: var(--mono); font-weight: 500; }
 .practice-controls select { max-width: 100%; min-width: 0; flex: 1 1 220px; }
+.el-bar { margin-bottom: 16px; }

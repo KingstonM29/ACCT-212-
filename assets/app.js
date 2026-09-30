@@ -162,7 +162,7 @@
           plan.push({ d, title: days === 1 ? "Cram day: everything" : "Final review", tasks: [
             mockFor(info.id) ? `Take the <a href="#/mock/${mockFor(info.id).id}">interactive mock midterm</a> with the 80-minute timer, then review your weakest topics` : `Work the <a href="#/exam/${info.id}#practice">practice problems</a> without looking at solutions`,
             `Do two <a href="#/statements">Statement Lab</a> sets: trial balance → all three statements`,
-            `Redo the instructor’s <a href="#/mock/je-practice">journal entry</a> and <a href="#/mock/closing-practice">closing entry</a> practice sets`,
+            `Redo the instructor’s <a href="#/mock/je-practice">journal entry</a> and <a href="#/mock/closing-practice">closing entry</a> practice sets, then do fresh ones in the <a href="#/entry-lab">Entry Lab</a>`,
             `Take the <a href="#/practice?mode=quiz&exam=${info.id}">mixed quiz</a> and aim for 80%+`,
             `Re-read the <a href="#/overview?exam=${info.id}">overall notes</a> and tick off your checklist`] });
         } else {
@@ -319,7 +319,10 @@
     } else if (tab === "examples") {
       body = (c.examples || []).map((ex, k) => renderExample(c.id, ex, k)).join("") || `<p class="muted">No worked examples yet.</p>`;
     } else if (tab === "practice") {
-      body = `<div id="practiceMount"></div>`;
+      const links = c.number === 3 ? [["Instructor journal entry sets", "#/mock/je-practice"], ["Entry Lab: endless journal entries", "#/entry-lab"], ["Instructor questions (Ch 3)", "#/practice?mode=quiz&src=instructor&ch=ch3"]]
+        : c.number === 4 ? [["Instructor closing entry sets", "#/mock/closing-practice"], ["Entry Lab: endless closing entries", "#/entry-lab"], ["Statement Lab", "#/statements"]]
+        : (c.quiz || []).some((q) => q.src) ? [["Instructor questions (" + chLabel(c) + ")", `#/practice?mode=quiz&src=instructor&ch=${c.id}`]] : [];
+      body = (links.length ? `<div class="btn-row" style="margin-bottom:14px">${links.map((l) => `<a class="btn" href="${l[1]}">${esc(l[0])} →</a>`).join("")}</div>` : "") + `<div id="practiceMount"></div>`;
     }
     const exam = EXAMS.find((x) => x.chapters.includes(c.number) && x.id !== "final");
     return `<div class="page-head"><div class="eyebrow">Chapter ${c.number} · taught ${ordinal(c.order)}${m.exam ? " · " + esc(m.exam) : ""}</div>
@@ -408,7 +411,8 @@
       ${info.chapters.includes(1) ? `<a class="card mock-cta" href="#/statements"><div><div class="eyebrow">Unlimited practice · auto-graded</div><h2>Statement Lab</h2><p>Practise the classic question: prepare the income statement, statement of retained earnings / owner’s equity and classified balance sheet from a trial balance.</p></div><div class="mock-cta-go"><b>Practise →</b></div></a>` : ""}
       ${info.chapters.includes(3) && PRACTICE_SETS().length ? `<div class="quick practice-sets" style="margin-top:16px">
         <a class="card tool-feature" href="#/practice?mode=quiz&src=instructor&exam=${id}"><h3>Instructor practice questions</h3><p>Every T/F and multiple-choice question from Practice Questions 1–3.</p></a>
-        ${PRACTICE_SETS().map((m) => `<a class="card tool-feature" href="#/mock/${m.id}"><h3>${esc(m.title)}</h3><p>From your instructor’s practice sheets, auto-graded.</p></a>`).join("")}</div>` : ""}
+        ${PRACTICE_SETS().map((m) => `<a class="card tool-feature" href="#/mock/${m.id}"><h3>${esc(m.title)}</h3><p>From your instructor’s practice sheets, auto-graded.</p></a>`).join("")}
+        <a class="card tool-feature" href="#/entry-lab"><h3>Entry Lab (endless)</h3><p>Unlimited new journal and closing entry sets in the same style.</p></a></div>` : ""}
       ${ev && !past ? studyPlan(ev, info) : ""}
       ${mock ? `<div class="section-title" id="topics"><h2>Your instructor’s topic list</h2><span class="muted">“These will be on the midterm for sure”</span></div>
         <div class="card"><ul class="checklist topics">${mock.topics.map((t) => `<li><label><input type="checkbox" data-topic="${id}:${t.id}" ${(checks()["topics-" + id] || {})[t.id] ? "checked" : ""}><span>${esc(t.label)}</span></label>
@@ -447,6 +451,14 @@
         </div></div>
       <div class="section-title"><h2>Practise</h2><span class="muted">Every set balances and is graded. Hints point to the usual mistakes.</span></div>
       <div id="stmtMount"></div>`;
+  }
+
+  /* ---------- entry lab ---------- */
+  function viewEntryLab() {
+    return `<div class="page-head"><div class="eyebrow">Entry Lab · Ch 3 & 4</div><h1>Endless journal & closing entries</h1>
+      <p>Fresh practice built from the same transaction types as your instructor’s Excel sheets: owner investments, property purchases split into land, building and equipment, first-month-only insurance, partial billings, note and mortgage payments, revenue shares, and events that need <b>no entry</b>. Closing sets give a mixed-up balance list, and about a third are net losses. Every set balances and is auto-graded.</p>
+      <div class="btn-row"><a class="btn" href="#/mock/je-practice">Instructor journal sets</a><a class="btn" href="#/mock/closing-practice">Instructor closing sets</a></div></div>
+      <div id="entryMount"></div>`;
   }
 
   /* ---------- mock exam ---------- */
@@ -572,6 +584,7 @@
       <div class="quick practice-sets">
         <a class="card tool-feature" href="#/practice?mode=quiz&src=instructor"><h3>Instructor practice questions</h3><p>All ${instructorCount} true/false and multiple-choice questions from Practice Questions 1–3, with explanations.</p></a>
         ${PRACTICE_SETS().map((m) => `<a class="card tool-feature" href="#/mock/${m.id}"><h3>${esc(m.title)}</h3><p>${m.parts.filter((pt) => pt.type === "je").reduce((n, pt) => n + pt.items.length, 0)} auto-graded entries from your instructor’s ${m.id.startsWith("je") ? "journal entry" : "closing entry"} practice sheets.</p></a>`).join("")}
+        <a class="card tool-feature" href="#/entry-lab"><h3>Entry Lab (endless)</h3><p>New journal and closing entry sets every time, modelled on the instructor’s Excel sheets.</p></a>
         <a class="card" href="#/statements"><h3>Statement Lab</h3><p>Trial balance → income statement, retained earnings and balance sheet.</p></a>
       </div>
       ${mode === "quiz" ? `<div class="practice-controls"><div class="seg"><a href="#/practice?${qsBase}" class="${src ? "" : "on"}">All questions</a><a href="#/practice?${qsBase}&src=instructor" class="${src ? "on" : ""}">Instructor questions only</a></div></div>` : ""}
@@ -821,6 +834,7 @@
       (c.examples || []).forEach((e) => idx.push({ c, where: "Example", title: e.title, text: strip(e.prompt), href: `#/chapter/${c.id}/examples` }));
       (c.flashcards || []).forEach((f) => idx.push({ c, where: "Flashcard", title: f.q, text: f.a, href: `#/practice?mode=cards&ch=${c.id}` }));
     });
+    idx.push({ c: { number: "Entry Lab" }, where: "Practice", title: "Endless journal entry and closing entry practice", text: "journal entries closing entries income summary net loss drawings dividends no entry required practice sets", href: "#/entry-lab" });
     idx.push({ c: { number: "Statement Lab" }, where: "Practice", title: "Prepare the income statement, statement of retained earnings and balance sheet", text: "trial balance financial statements classified balance sheet retained earnings owner’s equity heading method traps", href: "#/statements" });
     CH.forEach((c) => (c.quiz || []).filter((q) => q.src).forEach((q) => idx.push({ c, where: "Instructor " + q.src, title: q.q, text: q.options[q.answer] + ". " + (q.why || ""), href: `#/practice?mode=quiz&src=instructor&ch=${c.id}` })));
     PRACTICE_SETS().forEach((m) => m.parts.forEach((pt) => (pt.items || []).forEach((it) => { if (it.text) idx.push({ c: { number: "Practice set" }, where: m.title, title: `${pt.title}: ${it.date}`, text: it.text, href: `#/mock/${m.id}#part-${pt.id}` }); })));
@@ -861,6 +875,7 @@
       case "visual": html = viewVisual(query); break;
       case "mock": html = viewMock(parts[1]); break;
       case "statements": html = viewStatements(); break;
+      case "entry-lab": html = viewEntryLab(); break;
       case "notes": html = viewNotesIndex(); break;
       case "chapter": html = viewChapter(parts[1], parts[2]); break;
       case "exam": html = viewExam(parts[1]); break;
@@ -877,6 +892,8 @@
 
     // post-render mounts
     mountDiagrams(app);
+    const em = document.getElementById("entryMount");
+    if (em && window.EntryLab) window.EntryLab.render(em);
     const sm = document.getElementById("stmtMount");
     if (sm && window.StatementLab) window.StatementLab.render(sm);
     const mm = document.getElementById("mockMount");

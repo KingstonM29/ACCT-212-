@@ -170,7 +170,7 @@
       const rows = mock.topics.filter((tp) => T[tp.id]).map((tp) => ({ tp, pct: (T[tp.id][0] / T[tp.id][1]) * 100, e: T[tp.id][0], p: T[tp.id][1] })).sort((x, y) => x.pct - y.pct);
       const res = el.querySelector(".mock-result");
       res.hidden = false;
-      res.innerHTML = `<div class="mr-top"><div><div class="eyebrow">Your mock result</div><div class="mr-score">${pct.toFixed(1)}%</div><div class="muted">${fmtM(e)} / ${fmtM(pos)} marks${letter ? " · " + letter : ""}</div></div>
+      res.innerHTML = `<div class="mr-top"><div><div class="eyebrow">${mock.practice ? "Your result" : "Your mock result"}</div><div class="mr-score">${pct.toFixed(1)}%</div><div class="muted">${fmtM(e)} / ${fmtM(pos)} marks${letter ? " · " + letter : ""}</div></div>
         <div class="mr-parts">${per.map(([p, r]) => `<a href="#part-${p.id}" data-jump="part-${p.id}"><span>Part ${p.id}</span><b>${fmtM(r.earned)}/${fmtM(r.possible)}</b></a>`).join("")}</div></div>
         <h3>By topic <span class="muted">(weakest first)</span></h3>
         <div class="mr-topics">${rows.map((r) => `<div class="mr-t"><div class="mr-tl"><b>${esc(r.tp.label)}</b><span>${Math.round(r.pct)}%</span></div>
@@ -201,14 +201,14 @@
     const coverage = {};
     mock.parts.forEach((p) => { const r = { topics: {} }; (p.items || []).forEach((it) => addT(r.topics, it.topic || it.topics || p.topic, 0, p.marksEach || 0)); if (p.type === "order") addT(r.topics, p.topic, 0, p.marks); Object.keys(r.topics).forEach((k) => addT(coverage, k, 0, r.topics[k][1])); });
     el.innerHTML = `<div class="mock">
-      <div class="mock-bar">${mock.minutes ? `<span class="mock-timer"></span><button class="btn" data-act="timer"></button>` : `<span class="mock-timer on">${esc(mock.title)}</span>`}<button class="btn primary" data-act="gradeall">Grade whole exam</button><button class="btn" data-act="reset">Clear answers</button></div>
+      <div class="mock-bar">${mock.minutes ? `<span class="mock-timer"></span><button class="btn" data-act="timer"></button>` : `<span class="mock-timer on">${esc(mock.title)}</span>`}<button class="btn primary" data-act="gradeall">${mock.practice ? "Grade all" : "Grade whole exam"}</button><button class="btn" data-act="reset">Clear answers</button></div>
       <div class="callout warn mock-timeup" hidden><b>Time’s up.</b> Press <i>Grade whole exam</i> to see how you did.</div>
       <div class="card mock-intro">${mock.intro}
         <h3>${mock.practice ? "What this practises" : "Your instructor’s topic list → where it’s tested"}</h3>
         <div class="cov">${mock.topics.map((tp) => `<div class="cov-row"><span>${esc(tp.label)}</span><b>${coverage[tp.id] ? fmtM(coverage[tp.id][1]) + " marks" : ""}</b></div>`).join("")}</div>
         <p class="muted">Total: ${fmtM(total)} marks${mock.minutes ? ` · suggested time ${mock.minutes} minutes` : ""}${state.last ? ` · last attempt ${state.last.pct}%` : ""}</p></div>
       ${mock.parts.map(renderPart).join("")}
-      <div class="mock-end"><button class="btn primary" data-act="gradeall">Grade whole exam</button></div>
+      <div class="mock-end"><button class="btn primary" data-act="gradeall">${mock.practice ? "Grade all" : "Grade whole exam"}</button></div>
       <section class="card mock-result" hidden></section></div>`;
     // restore JE account selections (select values can't be set via markup easily)
     mock.parts.filter((p) => p.type === "je").forEach((p) => {
